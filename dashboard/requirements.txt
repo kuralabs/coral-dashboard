@@ -1,0 +1,13 @@
+# UI Framework
+urwid
+
+# Web Framework
+ujson
+aiohttp
+cchardet
+aiodns
+
+# Utilities
+pprintpp
+colorlog
+setproctitle
