@@ -25,10 +25,10 @@ from logging import getLogger as get_logger
 from aiohttp import web
 from ujson import dumps as udumps
 from urwid import AsyncioEventLoop, MainLoop
-from urwid import (
-    Text,
-    Filler,
-)
+from aiohttp_remotes import XForwardedRelaxed
+
+from .ui.coral import CoralUI
+
 
 log = get_logger(__name__)
 
@@ -46,36 +46,66 @@ def dumps(obj):
 
 
 class Dashboard:
-    def __init__(self, path=None, port=None):
+    """
+    Main Dashboard application.
 
-        assert path is not None or port is not None, \
-            '"path" or "port" must be passed to the Dashboard constructor'
+    This class manages the web application (and their endpoints) and the
+    terminal UI application in a single AsyncIO loop.
+
+    :param int port: A TCP port to serve from.
+    """
+
+    def __init__(self, port, logs=None):
 
         # Build Web App
-        self.path = path
         self.port = port
-        self.app = web.Application()
-        self.app.router.add_post('/api/push', self.push)
+        self.logs = logs
+        self.webapp = web.Application(middlewares=[
+            # Just in case someone wants to use it behind a reverse proxy
+            # Not sure why someone will want to do that though
+            XForwardedRelaxed().middleware,
+        ])
+        self.webapp.router.add_get('/api/logs', self.api_logs)
+        self.webapp.router.add_post('/api/push', self.api_push)
 
-        # Build UI App
-        self.txt = Text(u"Hello World")
-        topmost = Filler(self.txt, 'top')
-        self.uiloop = MainLoop(  # noqa
-            topmost,
+        # Build Terminal UI App
+        self.ui = CoralUI()
+        self.tuiapp = MainLoop(
+            self.ui.topmost,
+            self.ui.palette,
             event_loop=AsyncioEventLoop(loop=get_event_loop())
         )
 
     def run(self):
+        """
+        Blocking method that starts the event loop.
+        """
+
+        self.tuiapp.start()
+        self.webapp.on_shutdown.append(lambda app: self.tuiapp.stop())
 
         # This is aiohttp blocking call that starts the loop. By default, it
-        # will use the aiohttp default loop. It would be nice that we could
-        # specify the loop, for this application it is OK, but definitely in
+        # will use the asyncio default loop. It would be nice that we could
+        # specify the loop. For this application it is OK, but definitely in
         # the future we should identify how to share a loop explicitly.
-        self.uiloop.start()
-        self.app.on_shutdown.append(lambda app: self.uiloop.stop())
-        web.run_app(self.app, path=self.path, port=self.port)
+        web.run_app(
+            self.webapp,
+            port=self.port,
+            print=None,
+        )
 
-    async def push(self, request):
+    async def api_logs(self, request):
+        """
+        Endpoint to get dashboard logs.
+        """
+        if self.logs is None:
+            return 'No logs configured'
+        return web.FileResponse(self.logs)
+
+    async def api_push(self, request):
+        """
+        Endpoint to push data to the dashboard.
+        """
         results = {
             'remote': request.remote,
             'agent': request.headers['User-Agent'],
@@ -85,8 +115,9 @@ class Dashboard:
             remote=request.remote,
             agent=request.headers['User-Agent'],
         )
+
         log.info(message)
-        self.txt.set_text(message)
+        self.ui.header.set_text(message)
 
         return web.json_response(results, dumps=dumps)
 

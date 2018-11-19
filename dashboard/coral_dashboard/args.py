@@ -20,6 +20,7 @@ Argument management module.
 """
 
 import logging
+from pathlib import Path
 
 from colorlog import ColoredFormatter
 
@@ -47,10 +48,20 @@ def validate_args(args):
     :rtype: :py:class:`argparse.Namespace`
     """
 
+    # Determine path to logs
+    logs = Path(args.logs)
+    try:
+        logs.touch(exist_ok=True)
+    except (IsADirectoryError, PermissionError, Exception) as e:
+        raise InvalidArgument(
+            'Invalid location for logs: {}'.format(str(e))
+        )
+    args.logs = logs.resolve()
+
+    # Configure logging
     logfrmt = (
         '  {thin_white}{asctime}{reset} | '
         '{log_color}{levelname:8}{reset} | '
-        '{thin_white}{processName}{reset} | '
         '{log_color}{message}{reset}'
     )
 
@@ -63,18 +74,13 @@ def validate_args(args):
 
     formatter = ColoredFormatter(fmt=logfrmt, style='{')
 
-    stream = logging.StreamHandler()
+    stream = logging.FileHandler(str(args.logs))
     stream.setFormatter(formatter)
 
     level = verbosity_levels.get(args.verbosity, logging.DEBUG)
     logging.basicConfig(handlers=[stream], level=level)
 
     log.debug('Verbosity at level {}'.format(args.verbosity))
-
-    if args.path is None and args.port is None:
-        args.port = 5000
-    elif args.path is not None and args.port is not None:
-        raise InvalidArgument('Cannot set both --path and --port options')
 
     return args
 
@@ -95,13 +101,6 @@ def parse_args(argv=None):
         description='Coral Dashboard'
     )
     parser.add_argument(
-        '-v', '--verbose',
-        dest='verbosity',
-        help='Increase verbosity level',
-        default=0,
-        action='count'
-    )
-    parser.add_argument(
         '--version',
         action='version',
         version='{} v{}'.format(
@@ -109,15 +108,24 @@ def parse_args(argv=None):
             __version__,
         )
     )
+
     parser.add_argument(
-        '--path',
-        help='Unix socket path',
-        default=None,
+        '-v', '--verbose',
+        dest='verbosity',
+        help='Increase verbosity level',
+        default=0,
+        action='count'
     )
+    parser.add_argument(
+        '--logs',
+        help='Log to file',
+        default='coral.log',
+    )
+
     parser.add_argument(
         '--port',
         help='TCP port',
-        default=None,
+        default=5000,
     )
 
     args = parser.parse_args(argv)

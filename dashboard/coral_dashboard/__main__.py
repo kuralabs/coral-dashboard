@@ -53,8 +53,10 @@ def main(args):
         getuid(),
         getpid(),
     ))
+    log.info('Logs at {}'.format(args.logs))
+    log.info('Listening on http://0.0.0.0:{}/'.format(args.port))
 
-    dashboard = Dashboard(path=args.path, port=args.port)
+    dashboard = Dashboard(args.port, logs=args.logs)
     dashboard.run()
     return 0
 
