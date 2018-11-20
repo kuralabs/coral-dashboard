@@ -15,28 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-"""
-coral_agent executable module entry point.
-"""
 
-from sys import exit
-from logging import getLogger as get_logger
-
-
-log = get_logger(__name__)
-
-
-def main():
-    """
-    Application main function.
-    """
-    exit(0)
-
-
-if __name__ == '__main__':
-    main()
-
-
-__all__ = [
-    'main',
-]
+def test_push():
+    assert True

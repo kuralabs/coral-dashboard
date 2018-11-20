@@ -33,16 +33,15 @@ from .args import parse_args, InvalidArgument
 log = get_logger(__name__)
 
 
-def main(args):
+def main():
     """
     Application main function.
-
-    :param args: An arguments namespace.
-    :type args: :py:class:`argparse.Namespace`
-
-    :return: Exit code.
-    :rtype: int
     """
+    try:
+        args = parse_args()
+    except InvalidArgument as e:
+        log.error(e)
+        exit(-1)
 
     setproctitle('coral-dashboard@{}'.format(
         args.port if args.port is not None else args.path
@@ -58,18 +57,13 @@ def main(args):
 
     dashboard = Dashboard(args.port, logs=args.logs)
     dashboard.run()
-    return 0
+    exit(0)
 
 
 if __name__ == '__main__':
-
-    try:
-        args = parse_args()
-    except InvalidArgument as e:
-        log.error(e)
-        exit(-1)
-
-    exit(main(args))
+    main()
 
 
-__all__ = []
+__all__ = [
+    'main',
+]

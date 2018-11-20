@@ -4,6 +4,10 @@ __pycache__
 # Packages
 *.egg
 *.egg-info
+agent/dist
+agent/build
+dashboard/dist
+dashboard/build
 
 # Tox
 .tox/*
