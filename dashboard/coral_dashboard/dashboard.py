@@ -22,8 +22,11 @@ Coral dashboard RESTful API and UI module.
 from asyncio import get_event_loop
 from logging import getLogger as get_logger
 
+from ujson import (
+    dumps as udumps,
+    loads as uloads,
+)
 from aiohttp import web
-from ujson import dumps as udumps
 from urwid import AsyncioEventLoop, MainLoop
 from aiohttp_remotes import XForwardedRelaxed
 
@@ -43,6 +46,18 @@ def dumps(obj):
     :rtype: str
     """
     return udumps(obj, ensure_ascii=False, escape_forward_slashes=False)
+
+
+def loads(json):
+    """
+    JSON loads helper using ujson.
+
+    :param str json: JSON formatted string.
+
+    :return: Python object loaded from JSON.
+    :rtype: dict
+    """
+    return uloads(json, precise_float=True)
 
 
 class Dashboard:
@@ -106,20 +121,52 @@ class Dashboard:
         """
         Endpoint to push data to the dashboard.
         """
-        results = {
+
+        if request.content_type != 'application/json':
+            raise web.HTTPBadRequest(
+                text=(
+                    'Invalid Content-Type "{}". '
+                    'Only "application/json" is supported.'
+                ).format(request.content_type)
+            )
+
+        metadata = {
             'remote': request.remote,
             'agent': request.headers['User-Agent'],
+            'content_type': request.content_type,
         }
 
-        message = 'Request from {remote} with user agent {agent}'.format(
-            remote=request.remote,
-            agent=request.headers['User-Agent'],
-        )
-
+        message = (
+            'Request from {remote} using {content_type} with user '
+            'agent {agent}'
+        ).format(**metadata)
         log.info(message)
-        self.ui.header.set_text(message)
 
-        return web.json_response(results, dumps=dumps)
+        try:
+            payload = await request.json(loads=loads)
+        except ValueError:
+            raise web.HTTPBadRequest(text='Invalid JSON payload')
+
+        self._push_dataobj(payload, [])
+
+        return web.json_response(metadata, dumps=dumps)
+
+    def _push_dataobj(self, obj, breadcrumbs):
+        """
+        Recursively iterate an arbitrary dictionary tree and push all the leafs
+        to the UI.
+
+        :param obj: Arbitrary Python object to push (if leaf) or iterate
+         (if dictionary).
+        :param list breadcrumbs: List of parent keys visited prior to current
+         leaf.
+        """
+        if not isinstance(obj, dict):
+            self.ui.set_ui('.'.join(breadcrumbs), obj)
+            return
+
+        for key, value in obj.items():
+            self._push_dataobj(value, breadcrumbs + [key])
 
 
 __all__ = [

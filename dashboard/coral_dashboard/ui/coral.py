@@ -39,16 +39,22 @@ class CoralUI:
     FIXME: Document.
     """
     palette = [
-        ('widget_header',   'white,bold',   'dark cyan',),
-        ('section_header',  'white',        'dark magenta',),
-        ('style1',          'black',        'light gray'),
-        ('style2',          'white',        'black'),
+        ('widget_header',   'white,bold',   'dark cyan',),  # noqa
+        ('section_header',  'white',        'dark magenta',),  # noqa
+        ('style1',          'black',        'light gray'),  # noqa
+        ('style2',          'white',        'black'),  # noqa
     ]
 
     def __init__(self):
         self.widgets_config = [
-            { 'title': 'Temperature', 'sections': ['Coolant', 'GPU', 'CPU'] },
-            { 'title': 'Load', 'sections': ['GPU', 'CPU']}
+            {
+                'title': 'Temperature',
+                'sections': ['Coolant', 'GPU', 'CPU'],
+            },
+            {
+                'title': 'Load',
+                'sections': ['GPU', 'CPU'],
+            }
         ]
 
         self.header = Text(('style1', u' Hello World '), align='center')
@@ -80,6 +86,14 @@ class CoralUI:
         pile = Pile([header_map])
 
         return pile
+
+    def set_ui(self, key, value):
+        if key == 'header':
+            self.header.set_text(value)
+            return
+
+        log.warning('Unknown UI field {} got value {}'.format(key, value))
+
 
 __all__ = [
     'CoralUI',
