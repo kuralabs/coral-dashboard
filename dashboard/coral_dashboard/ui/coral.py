@@ -34,15 +34,23 @@ from urwid import (
 log = get_logger(__name__)
 
 
+PALETTE = """
+STYLE NAME            | FOREGROUND           | BACKGROUND
+====================================================================
+widget_header         | white,bold           | dark cyan
+section_header        | white                | dark magenta
+style1                | black                | light gray
+style2                | white                | black
+"""
+
+
 class CoralUI:
     """
     FIXME: Document.
     """
     palette = [
-        ('widget_header',   'white,bold',   'dark cyan',),  # noqa
-        ('section_header',  'white',        'dark magenta',),  # noqa
-        ('style1',          'black',        'light gray'),  # noqa
-        ('style2',          'white',        'black'),  # noqa
+        tuple(cell.strip() for cell in line.split('|'))
+        for line in PALETTE.strip().splitlines()[2:]
     ]
 
     def __init__(self):
