@@ -6,11 +6,10 @@ Pushing data to the UI:
 
 .. code-block:: sh
 
-   curl \
+    curl http://localhost:5000/api/push \
        --request POST \
        --header "Content-Type: application/json" \
-       --data '{"header": "Testing..."}' \
-       http://localhost:5000/api/push
+       --data '{"header": "Testing...", "bargraph": 10}'
 
 Accesing server logs:
 

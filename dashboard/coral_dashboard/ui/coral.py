@@ -22,13 +22,13 @@ Coral UI module.
 from logging import getLogger as get_logger
 
 from urwid import (
-    Pile,
-    Text,
-    Filler,
-    AttrMap,
-    Columns,
-    Divider,
+    Padding,
+    Pile, Columns,
+    Text, Divider,
 )
+
+from .bar import Bar
+from .graph import Graph
 
 
 log = get_logger(__name__)
@@ -37,10 +37,14 @@ log = get_logger(__name__)
 PALETTE = """
 STYLE NAME            | FOREGROUND           | BACKGROUND
 ====================================================================
-widget_header         | white,bold           | dark cyan
-section_header        | white                | dark magenta
-style1                | black                | light gray
-style2                | white                | black
+bg background         | light gray           | black
+bg 1                  | white                | dark blue | standout
+bg 1 smooth           | dark blue            | black
+bg 2                  | white                | dark cyan | standout
+bg 2 smooth           | dark cyan            | black
+bar complete          | white                | dark blue | standout
+bar incomplete        | white                | dark cyan | standout
+bar smooth            | dark blue            | black
 """
 
 
@@ -54,52 +58,70 @@ class CoralUI:
     ]
 
     def __init__(self):
-        self.widgets_config = [
-            {
-                'title': 'Temperature',
-                'sections': ['Coolant', 'GPU', 'CPU'],
-            },
-            {
-                'title': 'Load',
-                'sections': ['GPU', 'CPU'],
-            }
-        ]
 
-        self.header = Text(('style1', u' Hello World '), align='center')
-        map1 = AttrMap(self.header, 'style1')
+        self.temp_coolant = Graph('Coolant')
+        self.temp_gpu = Graph('GPU')
+        self.temp_cpu = Graph('CPU')
 
-        self.widgets = Pile([self.get_widget(w) for w in self.widgets_config])
-        fill = Filler(Pile([map1, self.widgets]), 'top')
-        self.topmost = AttrMap(fill, 'style2')
+        self.pump = Bar('Pump/Fans')
 
-    def get_widget(self, w):
-        header = Text(('widget_header', w['title']))
-        header_map = AttrMap(header, 'widget_header')
+        self.load_gpu = Graph('GPU')
+        self.load_cpu = Graph('CPU')
 
-        div = Divider(u'=')
-        div_map = AttrMap(div, 'widget_header')
-        space = Divider(u' ')
+        self.memory = Graph('Memory')
+        self.network = Graph('Network')
 
-        sections = [self.get_section(s) for s in w['sections']]
-        cols = Columns(sections, dividechars=1)
+        self.disk_os = Bar('C:// "Windows"')
+        self.disk_apps = Bar('D:// "Storage"')
 
-        pile = Pile([header_map, div_map, cols, space])
+        self.topmost = Padding(Pile([
+            ('pack', Divider(' ')),
+            ('pack', Text('Temperature', align='center')),
+            Columns([
+                self.temp_coolant,
+                self.temp_gpu,
+                self.temp_cpu,
+            ], dividechars=1),
+            ('pack', Divider(' ')),
+            self.pump,
+            ('pack', Divider(' ')),
+            ('pack', Text('Load', align='center')),
+            Columns([
+                self.load_gpu,
+                self.load_cpu,
+            ], dividechars=1),
+            ('pack', Divider(' ')),
+            self.memory,
+            ('pack', Divider(' ')),
+            self.network,
+            ('pack', Divider(' ')),
+            ('pack', Text('Disk', align='center')),
+            Columns([
+                self.disk_os,
+                self.disk_apps,
+            ], dividechars=1),
+        ]), right=1, left=1)
 
-        return pile
+        # FIXME: Just for testing
+        for graph in [
+            self.temp_coolant,
+            self.temp_gpu,
+            self.temp_cpu,
+            self.load_gpu,
+            self.load_cpu,
+            self.memory,
+            self.network,
+        ]:
+            total = 20
+            for i in range(total):
+                graph.push(value=i, total=total)
 
-    def get_section(self, title):
-        header = Text(('section_header', title), align='center')
-        header_map = AttrMap(header, 'section_header')
-
-        pile = Pile([header_map])
-
-        return pile
+        self.pump.push(value=1000, total=2000)
+        self.disk_os.push(value=1500, total=4000)
+        self.disk_apps.push(value=600, total=1000)
 
     def set_ui(self, key, value):
-        if key == 'header':
-            self.header.set_text(value)
-            return
-
+        # FIXME: Actually pass data to UI
         log.warning('Unknown UI field {} got value {}'.format(key, value))
 
 
