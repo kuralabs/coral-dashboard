@@ -112,9 +112,9 @@ class CoralUI:
             self.memory,
             self.network,
         ]:
-            total = 20
+            total = 60
             for i in range(total):
-                graph.push(value=i, total=total)
+                graph.push(value=i + 1, total=total)
 
         self.pump.push(value=1000, total=2000)
         self.disk_os.push(value=1500, total=4000)

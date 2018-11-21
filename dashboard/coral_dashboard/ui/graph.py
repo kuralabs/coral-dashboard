@@ -33,20 +33,71 @@ from urwid import (
 log = get_logger(__name__)
 
 
+class ScalableBarGraph(BarGraph):
+
+    def __init__(self, *args, align='left', **kwargs):
+        assert align in ['left', 'right']
+        self._align = align
+        super().__init__(*args, **kwargs)
+
+    def calculate_bar_widths(self, size, bardata):
+        """
+        Fixes a bug in urwid 2.0.1 causing a::
+
+            File ".../urwid/graphics.py", line 397, in calculate_bar_widths
+                len(bardata), maxcol / self.bar_width)
+            TypeError: can't multiply sequence by non-int of type 'float'
+        """
+        (maxcol, maxrow) = size
+
+        if self.bar_width is not None:
+            return [self.bar_width] * min(
+                len(bardata), maxcol // self.bar_width
+            )
+
+        return super().calculate_bar_widths(size, bardata)
+
+    def _get_data(self, size):
+        """
+        This function is called by render to retrieve the data for the graph.
+
+        This implementation will truncate the bardata list returned if not all
+        bars will fit within maxcol.
+
+        This is basically a copy-paste of the original widget, but uses the
+        "align" parameter to decide what part of the data array to return.
+        """
+        (maxcol, maxrow) = size
+        bardata, top, hlines = self.data
+        widths = self.calculate_bar_widths((maxcol, maxrow), bardata)
+
+        if len(bardata) > len(widths):
+            if self._align == 'right':
+                return bardata[:len(widths)], top, hlines
+            return bardata[-len(widths):], top, hlines
+        return bardata, top, hlines
+
+
 class Graph(WidgetWrap):
+    MAX_ENTRIES = 200
+
     def __init__(self, title):
         self.title = Text(title, align='left')
         self.label = Text('', align='right')
 
-        self.data = []
-        self.graph = BarGraph(
+        self.graph = ScalableBarGraph(
             # FIXME: Parametrize styles
             ['bg background', 'bg 1', 'bg 2'],
             satt={
                 (1, 0): 'bg 1 smooth',
                 (2, 0): 'bg 2 smooth',
-            }
+            },
+            align='left',
         )
+        self.graph.set_bar_width(1)
+
+        self._data = [(0, 0)] * self.MAX_ENTRIES
+        self._data_count = 0
 
         super().__init__(
             Pile([
@@ -60,6 +111,7 @@ class Graph(WidgetWrap):
 
     def push(self, percent=None, value=None, total=None):
 
+        # Determine and change label
         label = '{:.2f}%'
 
         if percent is None:
@@ -73,9 +125,15 @@ class Graph(WidgetWrap):
 
         self.label.set_text(label.format(percent))
 
-        entry = [percent, 0] if len(self.data) & 1 else [0, percent]
-        self.data.append(entry)
-        self.graph.set_data(self.data, 100.0)
+        # Append new entry to data buffer
+        entry = (percent, 0) if self._data_count & 1 else (0, percent)
+        self._data.append(entry)
+
+        # Trim the buffer to MAX_ENTRIES and update data
+        del self._data[0]
+        self._data_count += 1
+
+        self.graph.set_data(self._data, 100.0)
 
 
 __all__ = [
