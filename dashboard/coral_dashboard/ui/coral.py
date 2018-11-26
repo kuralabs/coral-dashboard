@@ -50,6 +50,8 @@ temp_coolant bar1         |                      | light red
 temp_coolant bar1 smooth  | light red            | black
 temp_coolant bar2         |                      | dark red
 temp_coolant bar2 smooth  | dark red             | black
+temp_coolant title        | white, bold          | dark gray
+temp_coolant label        | white, bold          | dark gray
 
 temp_gpu background       |                      | black
 temp_gpu bar1             |                      | light green

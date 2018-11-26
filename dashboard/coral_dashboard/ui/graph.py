@@ -25,6 +25,7 @@ from urwid import (
     Text,
     Pile,
     Columns,
+    AttrMap,
     BarGraph,
     WidgetWrap,
 )
@@ -90,11 +91,8 @@ class Graph(WidgetWrap):
         self._data = [(0, 0)] * self.MAX_ENTRIES
         self._data_count = 0
 
-        self.title = Text(
-            '{} ({})'.format(title, unit),
-            align='left'
-        )
-        self.label = Text('', align='right')
+        self.title = Text('{} ({})'.format(title, unit), align='left')
+        self.label = Text('0.00% [?/?]', align='right')
 
         self.graph = ScalableBarGraph(
             [
@@ -113,8 +111,8 @@ class Graph(WidgetWrap):
         super().__init__(
             Pile([
                 ('pack', Columns([
-                    self.title,
-                    self.label,
+                    AttrMap(self.title, '{} title'.format(identifier)),
+                    AttrMap(self.label, '{} label'.format(identifier)),
                 ], dividechars=1)),
                 self.graph,
             ])
