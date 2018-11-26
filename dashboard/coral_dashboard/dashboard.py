@@ -31,6 +31,7 @@ from urwid import AsyncioEventLoop, MainLoop
 from aiohttp_remotes import XForwardedRelaxed
 
 from .ui.coral import CoralUI
+from .schema import validate_schema
 
 
 log = get_logger(__name__)
@@ -122,14 +123,16 @@ class Dashboard:
         Endpoint to push data to the dashboard.
         """
 
+        # Check media type
         if request.content_type != 'application/json':
-            raise web.HTTPBadRequest(
+            raise web.HTTPUnsupportedMediaType(
                 text=(
                     'Invalid Content-Type "{}". '
                     'Only "application/json" is supported.'
                 ).format(request.content_type)
             )
 
+        # Log request
         metadata = {
             'remote': request.remote,
             'agent': request.headers['User-Agent'],
@@ -142,31 +145,27 @@ class Dashboard:
         ).format(**metadata)
         log.info(message)
 
+        # Parse JSON request
+        body = await request.text()
         try:
-            payload = await request.json(loads=loads)
+            payload = loads(body)
         except ValueError:
-            raise web.HTTPBadRequest(text='Invalid JSON payload')
+            log.error('Invalid JSON payload:\n{}'.format(body))
+            raise web.HTTPBadRequest(
+                text='Invalid JSON payload'
+            )
 
-        self._push_dataobj(payload, [])
+        # Validate payload
+        errors, validated = validate_schema('push', payload)
+        if errors:
+            raise web.HTTPBadRequest(
+                text='Invalid PUSH request:\n{}'.format(errors)
+            )
+
+        # Push data to UI
+        self.ui.push(validated)
 
         return web.json_response(metadata, dumps=dumps)
-
-    def _push_dataobj(self, obj, breadcrumbs):
-        """
-        Recursively iterate an arbitrary dictionary tree and push all the leafs
-        to the UI.
-
-        :param obj: Arbitrary Python object to push (if leaf) or iterate
-         (if dictionary).
-        :param list breadcrumbs: List of parent keys visited prior to current
-         leaf.
-        """
-        if not isinstance(obj, dict):
-            self.ui.set_ui('.'.join(breadcrumbs), obj)
-            return
-
-        for key, value in obj.items():
-            self._push_dataobj(value, breadcrumbs + [key])
 
 
 __all__ = [

@@ -36,7 +36,7 @@ from .graph import Graph
 log = get_logger(__name__)
 
 
-_PALETTE = """
+CORAL_PALETTE = """
 STYLE NAME                | FOREGROUND           | BACKGROUND
 ========================================================================
 
@@ -153,21 +153,19 @@ def parse_palette(palette):
     return result
 
 
-CORAL_PALETTE = parse_palette(_PALETTE)
-
-
 class CoralUI:
     """
     FIXME: Document.
     """
+    palette = parse_palette(CORAL_PALETTE)
 
-    def __init__(self, palette=CORAL_PALETTE):
+    def __init__(self):
 
         self.tree = OrderedDict()
         self.widgets = [
             # None - Divider
             # String - Text
-            # WidgetType, identifier, title, unit - Widget
+            # (WidgetType, identifier, title, unit) - Widget
             # [Widgets] - Columns
             None,
             "Temperature",
@@ -201,7 +199,7 @@ class CoralUI:
         rows = []
         for desc in self.widgets:
             if type(desc) is tuple:
-                instance = self.get_widget_instance(desc)
+                instance = self._get_widget_instance(desc)
                 rows.append(instance)
                 continue
 
@@ -216,11 +214,10 @@ class CoralUI:
                 continue
 
             rows.append(Columns([
-                self.get_widget_instance(column)
+                self._get_widget_instance(column)
                 for column in desc
             ], dividechars=1))
 
-        self.palette = palette
         self.topmost = Padding(Pile(rows), right=1, left=1)
 
         # FIXME: Just for testing
@@ -235,7 +232,7 @@ class CoralUI:
         self.tree['pump'].push(value=1000, total=2000)
         self.tree['disk_apps'].push(value=600, total=1000)
 
-    def get_widget_instance(self, desc, pack_it=False):
+    def _get_widget_instance(self, desc):
         widget, identifier, title, unit = desc
         instance = widget(identifier, title, unit)
         self.tree[identifier] = instance
@@ -246,9 +243,15 @@ class CoralUI:
 
         return instance
 
-    def set_ui(self, key, value):
-        # FIXME: Actually pass data to UI
-        log.warning('Unknown UI field {} got value {}'.format(key, value))
+    def push(self, data):
+        for key, value in data.items():
+            if key not in self.tree:
+                log.warning(
+                    'Unknown UI field {} got value {}'.format(key, value)
+                )
+                continue
+
+            self.tree[key].push(**value)
 
 
 __all__ = [

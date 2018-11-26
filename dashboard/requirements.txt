@@ -7,6 +7,7 @@ aiohttp
 aiohttp-remotes
 cchardet
 aiodns
+cerberus
 
 # Utilities
 pprintpp
