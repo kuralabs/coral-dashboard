@@ -34,46 +34,155 @@ from .graph import Graph
 log = get_logger(__name__)
 
 
-PALETTE = """
-STYLE NAME            | FOREGROUND           | BACKGROUND
-====================================================================
-bg background         | light gray           | black
-bg 1                  | white                | dark blue | standout
-bg 1 smooth           | dark blue            | black
-bg 2                  | white                | dark cyan | standout
-bg 2 smooth           | dark cyan            | black
-bar complete          | white                | dark blue | standout
-bar incomplete        | white                | dark cyan | standout
-bar smooth            | dark blue            | black
+_PALETTE = """
+STYLE NAME                | FOREGROUND           | BACKGROUND
+========================================================================
+
+################
+# Graph Styles #
+################
+
+temp_coolant background   | light gray           | black
+temp_coolant bar1         | white                | dark blue
+temp_coolant bar2         | white                | dark cyan
+temp_coolant bar1 smooth  | dark blue            | black
+temp_coolant bar2 smooth  | dark cyan            | black
+
+temp_gpu background       | light gray           | black
+temp_gpu bar1             | white                | dark blue
+temp_gpu bar2             | white                | dark cyan
+temp_gpu bar1 smooth      | dark blue            | black
+temp_gpu bar2 smooth      | dark cyan            | black
+
+temp_cpu background       | light gray           | black
+temp_cpu bar1             | white                | dark blue
+temp_cpu bar2             | white                | dark cyan
+temp_cpu bar1 smooth      | dark blue            | black
+temp_cpu bar2 smooth      | dark cyan            | black
+
+gpu background            | light gray           | black
+gpu bar1                  | white                | dark blue
+gpu bar2                  | white                | dark cyan
+gpu bar1 smooth           | dark blue            | black
+gpu bar2 smooth           | dark cyan            | black
+
+cpu background            | light gray           | black
+cpu bar1                  | white                | dark blue
+cpu bar2                  | white                | dark cyan
+cpu bar1 smooth           | dark blue            | black
+cpu bar2 smooth           | dark cyan            | black
+
+memory background         | light gray           | black
+memory bar1               | white                | dark blue
+memory bar2               | white                | dark cyan
+memory bar1 smooth        | dark blue            | black
+memory bar2 smooth        | dark cyan            | black
+
+network background        | light gray           | black
+network bar1              | white                | dark blue
+network bar2              | white                | dark cyan
+network bar1 smooth       | dark blue            | black
+network bar2 smooth       | dark cyan            | black
+
+################
+# Bar Styles   #
+################
+
+pump complete             | white                | dark blue
+pump incomplete           | white                | dark cyan
+pump smooth               | dark blue            | black
+
+disk_os complete          | white                | dark blue
+disk_os incomplete        | white                | dark cyan
+disk_os smooth            | dark blue            | black
+
+disk_apps complete        | white                | dark blue
+disk_apps incomplete      | white                | dark cyan
+disk_apps smooth          | dark blue            | black
 """
+
+
+def parse_palette(palette):
+    result = []
+
+    for line in palette.strip().splitlines()[2:]:
+        line = line.strip()
+        if not line or line.startswith('#'):
+            continue
+
+        result.append(
+            tuple(cell.strip() for cell in line.split('|'))
+        )
+
+    return result
+
+
+CORAL_PALETTE = parse_palette(_PALETTE)
 
 
 class CoralUI:
     """
     FIXME: Document.
     """
-    palette = [
-        tuple(cell.strip() for cell in line.split('|'))
-        for line in PALETTE.strip().splitlines()[2:]
-    ]
 
-    def __init__(self):
+    def __init__(self, palette=CORAL_PALETTE):
 
-        self.temp_coolant = Graph('Coolant')
-        self.temp_gpu = Graph('GPU')
-        self.temp_cpu = Graph('CPU')
+        self.temp_coolant = Graph(
+            'temp_coolant',
+            'Coolant',
+            '°C',
+        )
+        self.temp_gpu = Graph(
+            'temp_gpu',
+            'GPU',
+            '°C',
+        )
+        self.temp_cpu = Graph(
+            'temp_cpu',
+            'CPU',
+            '°C',
+        )
 
-        self.pump = Bar('Pump/Fans')
+        self.pump = Bar(
+            'pump',
+            'Pump/Fans',
+            'RPM',
+        )
 
-        self.load_gpu = Graph('GPU')
-        self.load_cpu = Graph('CPU')
+        self.load_gpu = Graph(
+            'gpu',
+            'GPU',
+            '%',
+        )
+        self.load_cpu = Graph(
+            'cpu',
+            'CPU',
+            '%',
+        )
 
-        self.memory = Graph('Memory')
-        self.network = Graph('Network')
+        self.memory = Graph(
+            'memory',
+            'Memory',
+            'GB',
+        )
+        self.network = Graph(
+            'network',
+            'Network',
+            'Mbps',
+        )
 
-        self.disk_os = Bar('C:// "Windows"')
-        self.disk_apps = Bar('D:// "Storage"')
+        self.disk_os = Bar(
+            'disk_os',
+            'C:// "Windows"',
+            'GB',
+        )
+        self.disk_apps = Bar(
+            'disk_apps',
+            'D:// "Storage"',
+            'GB',
+        )
 
+        self.palette = palette
         self.topmost = Padding(Pile([
             ('pack', Divider(' ')),
             ('pack', Text('Temperature', align='center')),

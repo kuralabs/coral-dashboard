@@ -81,23 +81,34 @@ class ScalableBarGraph(BarGraph):
 class Graph(WidgetWrap):
     MAX_ENTRIES = 200
 
-    def __init__(self, title):
-        self.title = Text(title, align='left')
+    def __init__(self, identifier, title, unit):
+
+        self._identifier = identifier
+        self._title = title
+        self._unit = unit
+
+        self._data = [(0, 0)] * self.MAX_ENTRIES
+        self._data_count = 0
+
+        self.title = Text(
+            '{} ({})'.format(title, unit),
+            align='left'
+        )
         self.label = Text('', align='right')
 
         self.graph = ScalableBarGraph(
-            # FIXME: Parametrize styles
-            ['bg background', 'bg 1', 'bg 2'],
+            [
+                '{} background'.format(identifier),
+                '{} bar1'.format(identifier),
+                '{} bar2'.format(identifier),
+            ],
             satt={
-                (1, 0): 'bg 1 smooth',
-                (2, 0): 'bg 2 smooth',
+                (1, 0): '{} bar1 smooth'.format(identifier),
+                (2, 0): '{} bar2 smooth'.format(identifier),
             },
             align='left',
         )
         self.graph.set_bar_width(1)
-
-        self._data = [(0, 0)] * self.MAX_ENTRIES
-        self._data_count = 0
 
         super().__init__(
             Pile([

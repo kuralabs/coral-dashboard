@@ -47,18 +47,23 @@ class CoralBar(ProgressBar):
 
         return ''
 
+
 class Bar(WidgetWrap):
-    def __init__(self, title, rows=3):
+    def __init__(self, identifier, title, unit, rows=3):
+
+        self._identifier = identifier
+        self._title = title
+        self._unit = unit
+
         self.title = Text(title, align='left')
         self.label = Text('', align='right')
 
         middle = ceil(rows / 2) - 1
-        # FIXME: Parametrize style
         self.bars = [
             CoralBar(
-                'bar complete',
-                'bar incomplete',
-                satt='bar smooth',
+                '{} complete'.format(identifier),
+                '{} incomplete'.format(identifier),
+                satt='{} smooth'.format(identifier),
                 has_text=(middle == r),
             ) for r in range(rows)
         ]
