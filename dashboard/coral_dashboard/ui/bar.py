@@ -26,6 +26,7 @@ from math import ceil
 from urwid import (
     Text,
     Pile,
+    AttrMap,
     Columns,
     WidgetWrap,
     ProgressBar,
@@ -74,8 +75,8 @@ class Bar(WidgetWrap):
         super().__init__(
             Pile([
                 ('pack', Columns([
-                    self.title,
-                    self.label,
+                    AttrMap(self.title, '{} title'.format(identifier)),
+                    AttrMap(self.label, '{} label'.format(identifier)),
                 ], dividechars=1)),
             ] + [
                 ('pack', bar)
