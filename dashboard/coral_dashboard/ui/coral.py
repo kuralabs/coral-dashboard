@@ -68,16 +68,16 @@ temp_cpu bar2 smooth      | dark blue            | black
 # Load
 
 load_gpu background       |                      | black
-load_gpu bar1             |                      | light gray
-load_gpu bar1 smooth      | light gray           | black
-load_gpu bar2             |                      | light green
-load_gpu bar2 smooth      | light green          | black
+load_gpu bar1             |                      | dark green
+load_gpu bar1 smooth      | dark green           | black
+load_gpu bar2             |                      | light gray
+load_gpu bar2 smooth      | light gray           | black
 
 load_cpu background       |                      | black
-load_cpu bar1             |                      | light gray
-load_cpu bar1 smooth      | light gray           | black
-load_cpu bar2             |                      | light blue
-load_cpu bar2 smooth      | light blue           | black
+load_cpu bar1             |                      | dark blue
+load_cpu bar1 smooth      | dark blue            | black
+load_cpu bar2             |                      | light gray
+load_cpu bar2 smooth      | light gray           | black
 
 # Memory
 
@@ -99,16 +99,16 @@ network bar2 smooth       | dark magenta         | black
 # Bar Styles   #
 ################
 
-pump complete             | white                | dark blue
-pump incomplete           | white                | dark cyan
-pump smooth               | dark blue            | black
+pump normal               | white                | dark gray
+pump complete             | white                | dark red
+pump smooth               | dark gray            | white
 
-disk_os complete          | white                | dark blue
-disk_os incomplete        | white                | dark cyan
-disk_os smooth            | dark blue            | black
+disk_os normal            | white                | dark gray
+disk_os complete          | white                | dark cyan
+disk_os smooth            | dark gray            | white
 
-disk_apps complete        | white                | dark blue
-disk_apps incomplete      | white                | dark cyan
+disk_apps normal          | white                | dark blue
+disk_apps complete        | white                | dark cyan
 disk_apps smooth          | dark blue            | black
 """
 

@@ -64,8 +64,8 @@ class Bar(WidgetWrap):
         middle = ceil(rows / 2) - 1
         self.bars = [
             CoralBar(
+                '{} normal'.format(identifier),
                 '{} complete'.format(identifier),
-                '{} incomplete'.format(identifier),
                 satt='{} smooth'.format(identifier),
                 has_text=(middle == r),
             ) for r in range(rows)
