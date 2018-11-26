@@ -51,42 +51,42 @@ temp_coolant bar1         |                      | light red
 temp_coolant bar1 smooth  | light red            | black
 temp_coolant bar2         |                      | dark red
 temp_coolant bar2 smooth  | dark red             | black
-temp_coolant title        | white, bold          | default
-temp_coolant label        | white, bold          | default
+temp_coolant title        | white, bold          |
+temp_coolant label        | white, bold          |
 
 temp_gpu background       |                      | black
 temp_gpu bar1             |                      | light green
 temp_gpu bar1 smooth      | light green          | black
 temp_gpu bar2             |                      | dark green
 temp_gpu bar2 smooth      | dark green           | black
-temp_gpu title            | white, bold          | default
-temp_gpu label            | white, bold          | default
+temp_gpu title            | white, bold          |
+temp_gpu label            | white, bold          |
 
 temp_cpu background       |                      | black
 temp_cpu bar1             |                      | light blue
 temp_cpu bar1 smooth      | light blue           | black
 temp_cpu bar2             |                      | dark blue
 temp_cpu bar2 smooth      | dark blue            | black
-temp_cpu title            | white, bold          | default
-temp_cpu label            | white, bold          | default
+temp_cpu title            | white, bold          |
+temp_cpu label            | white, bold          |
 
 # Load
 
 load_gpu background       |                      | black
-load_gpu bar1             |                      | dark green
-load_gpu bar1 smooth      | dark green           | black
-load_gpu bar2             |                      | light gray
-load_gpu bar2 smooth      | light gray           | black
-load_gpu title            | white, bold          | default
-load_gpu label            | white, bold          | default
+load_gpu bar1             |                      | dark gray
+load_gpu bar1 smooth      | dark gray            | black
+load_gpu bar2             |                      | dark green
+load_gpu bar2 smooth      | dark green           | black
+load_gpu title            | white, bold          |
+load_gpu label            | white, bold          |
 
 load_cpu background       |                      | black
-load_cpu bar1             |                      | dark blue
-load_cpu bar1 smooth      | dark blue            | black
-load_cpu bar2             |                      | light gray
-load_cpu bar2 smooth      | light gray           | black
-load_cpu title            | white, bold          | default
-load_cpu label            | white, bold          | default
+load_cpu bar1             |                      | dark gray
+load_cpu bar1 smooth      | dark gray            | black
+load_cpu bar2             |                      | dark blue
+load_cpu bar2 smooth      | dark blue            | black
+load_cpu title            | white, bold          |
+load_cpu label            | white, bold          |
 
 # Memory
 
@@ -95,8 +95,8 @@ memory bar1               |                      | white
 memory bar1 smooth        | white                | black
 memory bar2               |                      | light gray
 memory bar2 smooth        | light gray           | black
-memory title              | white, bold          | default
-memory label              | white, bold          | default
+memory title              | white, bold          |
+memory label              | white, bold          |
 
 # Network
 
@@ -105,8 +105,8 @@ network bar1              |                      | light magenta
 network bar1 smooth       | light magenta        | black
 network bar2              |                      | dark magenta
 network bar2 smooth       | dark magenta         | black
-network title             | white, bold          | default
-network label             | white, bold          | default
+network title             | white, bold          |
+network label             | white, bold          |
 
 ################
 # Bar Styles   #
@@ -115,20 +115,20 @@ network label             | white, bold          | default
 pump normal               | white                | dark gray
 pump complete             | white                | dark red
 pump smooth               | dark gray            | white
-pump title                | white, bold          | default
-pump label                | white, bold          | default
+pump title                | white, bold          |
+pump label                | white, bold          |
 
 disk_os normal            | white                | dark gray
 disk_os complete          | white                | dark cyan
 disk_os smooth            | dark gray            | white
-disk_os title             | white, bold          | default
-disk_os label             | white, bold          | default
+disk_os title             | white, bold          |
+disk_os label             | white, bold          |
 
 disk_apps normal          | white                | dark gray
 disk_apps complete        | white                | brown
 disk_apps smooth          | dark gray            | black
-disk_apps title           | white, bold          | default
-disk_apps label           | white, bold          | default
+disk_apps title           | white, bold          |
+disk_apps label           | white, bold          |
 
 ####################
 #  General Styles  #
