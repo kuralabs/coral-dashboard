@@ -210,6 +210,9 @@ class CoralUI:
         instance = widget(identifier, title, unit)
         self.tree[identifier] = instance
 
+        if isinstance(instance, Bar):
+            return ('pack', instance)
+
         return instance
 
     def set_ui(self, key, value):
