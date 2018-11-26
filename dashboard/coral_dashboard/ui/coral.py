@@ -19,6 +19,7 @@
 Coral UI module.
 """
 
+from collections import OrderedDict
 from logging import getLogger as get_logger
 
 from urwid import (
@@ -127,69 +128,81 @@ class CoralUI:
 
     def __init__(self, palette=CORAL_PALETTE):
 
-        widgets = [
-            # Widget, identifier, title, unit
-            (Graph, 'temp_coolant', 'Coolant', '°C'),
-            (Graph, 'temp_gpu', 'GPU', '°C'),
-            (Graph, 'temp_cpu', 'CPU', '°C'),
+        self.tree = OrderedDict()
+        self.widgets = [
+            # None - Divider
+            # String - Text
+            # WidgetType, identifier, title, unit - Widget
+            # [Widgets] - Columns
+            None,
+            "Temperature",
+            [
+                (Graph, 'temp_coolant', 'Coolant', '°C'),
+                (Graph, 'temp_gpu', 'GPU', '°C'),
+                (Graph, 'temp_cpu', 'CPU', '°C'),
+            ],
+            None,
             (Bar, 'pump', 'Pump/Fans', 'RPM'),
-            (Graph, 'load_gpu', 'GPU', '%'),
-            (Graph, 'load_cpu', 'CPU', '%'),
+            None,
+            "Load",
+            [
+                (Graph, 'load_gpu', 'GPU', '%'),
+                (Graph, 'load_cpu', 'CPU', '%'),
+            ],
+            None,
+            "Memory",
             (Graph, 'memory', 'Memory', 'GB'),
+            None,
+            "Network",
             (Graph, 'network', 'Network', 'Mbps'),
-            (Bar, 'disk_os', 'C:// "Windows"', 'GB'),
-            (Bar, 'disk_apps', 'D:// "Storage"', 'GB'),
+            None,
+            "Disk",
+            [
+                (Bar, 'disk_os', 'C:// "Windows"', 'GB'),
+                (Bar, 'disk_apps', 'D:// "Storage"', 'GB'),
+            ]
         ]
 
-        for widget, identifier, title, unit in widgets:
-            setattr(self, identifier, widget(identifier, title, unit))
+        rows = []
+        for desc in self.widgets:
+            if type(desc) is tuple:
+                instance = self.get_widget_instance(desc)
+                rows.append(instance)
+                continue
+
+            if desc is None:
+                rows.append(('pack', Divider(' ')))
+                continue
+
+            if type(desc) is str:
+                rows.append(('pack', Text(desc, align='center')))
+                continue
+
+            rows.append(Columns([
+                self.get_widget_instance(column)
+                for column in desc
+            ], dividechars=1))
 
         self.palette = palette
-        self.topmost = Padding(Pile([
-            ('pack', Divider(' ')),
-            ('pack', Text('Temperature', align='center')),
-            Columns([
-                self.temp_coolant,
-                self.temp_gpu,
-                self.temp_cpu,
-            ], dividechars=1),
-            ('pack', Divider(' ')),
-            ('pack', self.pump),
-            ('pack', Divider(' ')),
-            ('pack', Text('Load', align='center')),
-            Columns([
-                self.load_gpu,
-                self.load_cpu,
-            ], dividechars=1),
-            ('pack', Divider(' ')),
-            self.memory,
-            ('pack', Divider(' ')),
-            self.network,
-            ('pack', Divider(' ')),
-            ('pack', Text('Disk', align='center')),
-            ('pack', Columns([
-                self.disk_os,
-                self.disk_apps,
-            ], dividechars=1)),
-        ]), right=1, left=1)
+        self.topmost = Padding(Pile(rows), right=1, left=1)
 
         # FIXME: Just for testing
-        for graph in [
-            self.temp_coolant,
-            self.temp_gpu,
-            self.temp_cpu,
-            self.load_gpu,
-            self.load_cpu,
-            self.memory,
-            self.network,
-        ]:
-            total = 60
-            for i in range(total):
-                graph.push(value=i + 1, total=total)
+        for widget in self.tree.values():
+            if isinstance(widget, Graph):
+                total = 60
+                for i in range(total):
+                    widget.push(value=i + 1, total=total)
+                continue
 
-        self.pump.push(value=1000, total=2000)
-        self.disk_os.push(value=1500, total=4000)
-        self.disk_apps.push(value=600, total=1000)
+            if isinstance(widget, Bar):
+                widget.push(value=1000, total=2000)
+
+    def get_widget_instance(self, desc):
+        widget, identifier, title, unit = desc
+        instance = widget(identifier, title, unit)
+        self.tree[identifier] = instance
+
+        return instance
 
     def set_ui(self, key, value):
         # FIXME: Actually pass data to UI
