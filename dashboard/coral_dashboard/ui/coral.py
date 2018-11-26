@@ -215,7 +215,7 @@ class CoralUI:
                 title = Text(('section title', descriptor), align='center')
                 widget = ('pack', AttrMap(title, 'section title'))
 
-            # Descriptor for a columns
+            # Descriptor for columns
             # IMPORTANT:
             #     With this implementation, you may only have columns of the
             #     same widget type, either all columns are graphs, or all
@@ -241,18 +241,6 @@ class CoralUI:
             rows.append(widget)
 
         self.topmost = Padding(Pile(rows), right=1, left=1)
-
-        # FIXME: Just for testing
-        for widget in self.tree.values():
-            if isinstance(widget, Graph):
-                total = 60
-                for i in range(total):
-                    widget.push(value=i + 1, total=total)
-                continue
-
-        self.tree['disk_os'].push(value=1500, total=4000)
-        self.tree['pump'].push(value=1000, total=2000)
-        self.tree['disk_apps'].push(value=600, total=1000)
 
     def _get_widget_instance(self, widget, identifier, title, unit):
         instance = widget(identifier, title, unit)

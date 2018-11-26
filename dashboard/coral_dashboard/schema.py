@@ -31,24 +31,32 @@ SCHEMA_PUSH = {
     'data': {
         'required': True,
         'type': 'dict',
-        'empty': False,
         'nullable': False,
+        'empty': False,
         'keyschema': {
             'type': 'string',
             'regex': '^[a-z][a-z0-9_]*$',
         },
         'valueschema': {
-            'percent': {
-                'type': 'float',
-                'nullable': True,
-            },
-            'value': {
-                'type': 'integer',
-                'nullable': True,
-            },
-            'total': {
-                'type': 'integer',
-                'nullable': True,
+            'type': 'dict',
+            'nullable': False,
+            'empty': False,
+            'schema': {
+                'percent': {
+                    'required': True,
+                    'type': 'float',
+                    'nullable': True,
+                },
+                'value': {
+                    'required': True,
+                    'type': 'integer',
+                    'nullable': True,
+                },
+                'total': {
+                    'required': True,
+                    'type': 'integer',
+                    'nullable': True,
+                },
             },
         },
     },

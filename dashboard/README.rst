@@ -9,7 +9,7 @@ Pushing data to the UI:
     curl http://localhost:5000/api/push \
        --request POST \
        --header "Content-Type: application/json" \
-       --data '{"header": "Testing...", "bargraph": 10}'
+       --data '{"data": {"temp_coolant": {"percent": 70.0, "value": null, "total": null}}}'
 
 Accesing server logs:
 

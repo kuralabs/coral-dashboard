@@ -156,14 +156,14 @@ class Dashboard:
             )
 
         # Validate payload
-        errors, validated = validate_schema('push', payload)
+        validated, errors = validate_schema('push', payload)
         if errors:
             raise web.HTTPBadRequest(
                 text='Invalid PUSH request:\n{}'.format(errors)
             )
 
         # Push data to UI
-        self.ui.push(validated)
+        self.ui.push(validated['data'])
 
         return web.json_response(metadata, dumps=dumps)
 
