@@ -197,26 +197,48 @@ class CoralUI:
         ]
 
         rows = []
-        for desc in self.widgets:
-            if type(desc) is tuple:
-                instance = self._get_widget_instance(desc)
-                rows.append(instance)
-                continue
+        for descriptor in self.widgets:
 
-            if desc is None:
-                rows.append(('pack', Divider(' ')))
-                continue
+            # Descriptor for an instance of a Graph or a Bar
+            if type(descriptor) is tuple:
+                widget = self._get_widget_instance(*descriptor)
 
-            if type(desc) is str:
-                title = Text(('section title', desc), align='center')
-                title_styled = AttrMap(title, 'section title')
-                rows.append(('pack', title_styled))
-                continue
+                if isinstance(widget, Bar):
+                    widget = ('pack', widget)
 
-            rows.append(Columns([
-                self._get_widget_instance(column)
-                for column in desc
-            ], dividechars=1))
+            # Descriptor for a divider
+            elif descriptor is None:
+                widget = ('pack', Divider(' '))
+
+            # Descriptor for a section title
+            elif type(descriptor) is str:
+                title = Text(('section title', descriptor), align='center')
+                widget = ('pack', AttrMap(title, 'section title'))
+
+            # Descriptor for a columns
+            # IMPORTANT:
+            #     With this implementation, you may only have columns of the
+            #     same widget type, either all columns are graphs, or all
+            #     columns are bars.
+            elif type(descriptor) is list:
+                columns = [
+                    self._get_widget_instance(*column)
+                    for column in descriptor
+                ]
+                widget = Columns(columns, dividechars=1)
+
+                if any(isinstance(column, Bar) for column in columns):
+                    widget = ('pack', widget)
+
+            else:
+                raise RuntimeError(
+                    'Unknown descriptor type {} for {}'.format(
+                        type(descriptor),
+                        descriptor,
+                    )
+                )
+
+            rows.append(widget)
 
         self.topmost = Padding(Pile(rows), right=1, left=1)
 
@@ -232,15 +254,9 @@ class CoralUI:
         self.tree['pump'].push(value=1000, total=2000)
         self.tree['disk_apps'].push(value=600, total=1000)
 
-    def _get_widget_instance(self, desc):
-        widget, identifier, title, unit = desc
+    def _get_widget_instance(self, widget, identifier, title, unit):
         instance = widget(identifier, title, unit)
         self.tree[identifier] = instance
-
-        # FIXME
-        # if isinstance(instance, Bar):
-        #     return ('pack', instance)
-
         return instance
 
     def push(self, data):
