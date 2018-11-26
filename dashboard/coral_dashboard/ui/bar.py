@@ -55,7 +55,10 @@ class Bar(WidgetWrap):
         self._title = title
         self._unit = unit
 
-        self.title = Text(title, align='left')
+        self.title = Text(
+            '{} ({})'.format(title, unit),
+            align='left'
+        )
         self.label = Text('', align='right')
 
         middle = ceil(rows / 2) - 1

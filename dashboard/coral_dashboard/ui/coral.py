@@ -60,17 +60,17 @@ temp_cpu bar2             | white                | dark cyan
 temp_cpu bar1 smooth      | dark blue            | black
 temp_cpu bar2 smooth      | dark cyan            | black
 
-gpu background            | light gray           | black
-gpu bar1                  | white                | dark blue
-gpu bar2                  | white                | dark cyan
-gpu bar1 smooth           | dark blue            | black
-gpu bar2 smooth           | dark cyan            | black
+load_gpu background       | light gray           | black
+load_gpu bar1             | white                | dark blue
+load_gpu bar2             | white                | dark cyan
+load_gpu bar1 smooth      | dark blue            | black
+load_gpu bar2 smooth      | dark cyan            | black
 
-cpu background            | light gray           | black
-cpu bar1                  | white                | dark blue
-cpu bar2                  | white                | dark cyan
-cpu bar1 smooth           | dark blue            | black
-cpu bar2 smooth           | dark cyan            | black
+load_cpu background       | light gray           | black
+load_cpu bar1             | white                | dark blue
+load_cpu bar2             | white                | dark cyan
+load_cpu bar1 smooth      | dark blue            | black
+load_cpu bar2 smooth      | dark cyan            | black
 
 memory background         | light gray           | black
 memory bar1               | white                | dark blue
@@ -127,60 +127,22 @@ class CoralUI:
 
     def __init__(self, palette=CORAL_PALETTE):
 
-        self.temp_coolant = Graph(
-            'temp_coolant',
-            'Coolant',
-            '°C',
-        )
-        self.temp_gpu = Graph(
-            'temp_gpu',
-            'GPU',
-            '°C',
-        )
-        self.temp_cpu = Graph(
-            'temp_cpu',
-            'CPU',
-            '°C',
-        )
+        widgets = [
+            # Widget, identifier, title, unit
+            (Graph, 'temp_coolant', 'Coolant', '°C'),
+            (Graph, 'temp_gpu', 'GPU', '°C'),
+            (Graph, 'temp_cpu', 'CPU', '°C'),
+            (Bar, 'pump', 'Pump/Fans', 'RPM'),
+            (Graph, 'load_gpu', 'GPU', '%'),
+            (Graph, 'load_cpu', 'CPU', '%'),
+            (Graph, 'memory', 'Memory', 'GB'),
+            (Graph, 'network', 'Network', 'Mbps'),
+            (Bar, 'disk_os', 'C:// "Windows"', 'GB'),
+            (Bar, 'disk_apps', 'D:// "Storage"', 'GB'),
+        ]
 
-        self.pump = Bar(
-            'pump',
-            'Pump/Fans',
-            'RPM',
-        )
-
-        self.load_gpu = Graph(
-            'gpu',
-            'GPU',
-            '%',
-        )
-        self.load_cpu = Graph(
-            'cpu',
-            'CPU',
-            '%',
-        )
-
-        self.memory = Graph(
-            'memory',
-            'Memory',
-            'GB',
-        )
-        self.network = Graph(
-            'network',
-            'Network',
-            'Mbps',
-        )
-
-        self.disk_os = Bar(
-            'disk_os',
-            'C:// "Windows"',
-            'GB',
-        )
-        self.disk_apps = Bar(
-            'disk_apps',
-            'D:// "Storage"',
-            'GB',
-        )
+        for widget, identifier, title, unit in widgets:
+            setattr(self, identifier, widget(identifier, title, unit))
 
         self.palette = palette
         self.topmost = Padding(Pile([
