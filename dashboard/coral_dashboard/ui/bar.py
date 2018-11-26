@@ -21,6 +21,8 @@ Module implementing the main bar widget.
 
 from logging import getLogger as get_logger
 
+from math import ceil
+
 from urwid import (
     Text,
     Pile,
@@ -33,17 +35,33 @@ from urwid import (
 log = get_logger(__name__)
 
 
+class CoralBar(ProgressBar):
+
+    def __init__(self, *args, has_text=True, **kwargs):
+        self._has_text = has_text
+        super().__init__(*args, **kwargs)
+
+    def get_text(self):
+        if self._has_text:
+            return super().get_text()
+
+        return ''
+
 class Bar(WidgetWrap):
-    def __init__(self, title):
+    def __init__(self, title, rows=3):
         self.title = Text(title, align='left')
         self.label = Text('', align='right')
 
+        middle = ceil(rows / 2) - 1
         # FIXME: Parametrize style
-        self.bar = ProgressBar(
-            'bar complete',
-            'bar incomplete',
-            satt='bar smooth'
-        )
+        self.bars = [
+            CoralBar(
+                'bar complete',
+                'bar incomplete',
+                satt='bar smooth',
+                has_text=(middle == r),
+            ) for r in range(rows)
+        ]
 
         super().__init__(
             Pile([
@@ -51,7 +69,9 @@ class Bar(WidgetWrap):
                     self.title,
                     self.label,
                 ], dividechars=1)),
-                ('pack', self.bar),
+            ] + [
+                ('pack', bar)
+                for bar in self.bars
             ])
         )
 
@@ -69,7 +89,9 @@ class Bar(WidgetWrap):
             label = '{} [{}/{}]'.format(label, value, total)
 
         self.label.set_text(label.format(percent))
-        self.bar.set_completion(percent)
+
+        for bar in self.bars:
+            bar.set_completion(percent)
 
 
 __all__ = [
