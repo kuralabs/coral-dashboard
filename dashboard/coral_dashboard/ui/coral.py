@@ -83,7 +83,7 @@ class CoralUI:
                 self.temp_cpu,
             ], dividechars=1),
             ('pack', Divider(' ')),
-            self.pump,
+            ('pack', self.pump),
             ('pack', Divider(' ')),
             ('pack', Text('Load', align='center')),
             Columns([
@@ -96,10 +96,10 @@ class CoralUI:
             self.network,
             ('pack', Divider(' ')),
             ('pack', Text('Disk', align='center')),
-            Columns([
+            ('pack', Columns([
                 self.disk_os,
                 self.disk_apps,
-            ], dividechars=1),
+            ], dividechars=1)),
         ]), right=1, left=1)
 
         # FIXME: Just for testing
