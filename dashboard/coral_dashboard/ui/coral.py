@@ -43,47 +43,55 @@ STYLE NAME                | FOREGROUND           | BACKGROUND
 # Graph Styles #
 ################
 
-temp_coolant background   | light gray           | black
-temp_coolant bar1         | white                | dark blue
-temp_coolant bar2         | white                | dark cyan
-temp_coolant bar1 smooth  | dark blue            | black
-temp_coolant bar2 smooth  | dark cyan            | black
+# Temperature
 
-temp_gpu background       | light gray           | black
-temp_gpu bar1             | white                | dark blue
-temp_gpu bar2             | white                | dark cyan
-temp_gpu bar1 smooth      | dark blue            | black
-temp_gpu bar2 smooth      | dark cyan            | black
+temp_coolant background   |                      | black
+temp_coolant bar1         |                      | light red
+temp_coolant bar1 smooth  | light red            | black
+temp_coolant bar2         |                      | dark red
+temp_coolant bar2 smooth  | dark red             | black
 
-temp_cpu background       | light gray           | black
-temp_cpu bar1             | white                | dark blue
-temp_cpu bar2             | white                | dark cyan
-temp_cpu bar1 smooth      | dark blue            | black
-temp_cpu bar2 smooth      | dark cyan            | black
+temp_gpu background       |                      | black
+temp_gpu bar1             |                      | light green
+temp_gpu bar1 smooth      | light green          | black
+temp_gpu bar2             |                      | dark green
+temp_gpu bar2 smooth      | dark green           | black
 
-load_gpu background       | light gray           | black
-load_gpu bar1             | white                | dark blue
-load_gpu bar2             | white                | dark cyan
-load_gpu bar1 smooth      | dark blue            | black
-load_gpu bar2 smooth      | dark cyan            | black
+temp_cpu background       |                      | black
+temp_cpu bar1             |                      | light blue
+temp_cpu bar1 smooth      | light blue           | black
+temp_cpu bar2             |                      | dark blue
+temp_cpu bar2 smooth      | dark blue            | black
 
-load_cpu background       | light gray           | black
-load_cpu bar1             | white                | dark blue
-load_cpu bar2             | white                | dark cyan
-load_cpu bar1 smooth      | dark blue            | black
-load_cpu bar2 smooth      | dark cyan            | black
+# Load
 
-memory background         | light gray           | black
-memory bar1               | white                | dark blue
-memory bar2               | white                | dark cyan
-memory bar1 smooth        | dark blue            | black
-memory bar2 smooth        | dark cyan            | black
+load_gpu background       |                      | black
+load_gpu bar1             |                      | light gray
+load_gpu bar1 smooth      | light gray           | black
+load_gpu bar2             |                      | light green
+load_gpu bar2 smooth      | light green          | black
 
-network background        | light gray           | black
-network bar1              | white                | dark blue
-network bar2              | white                | dark cyan
-network bar1 smooth       | dark blue            | black
-network bar2 smooth       | dark cyan            | black
+load_cpu background       |                      | black
+load_cpu bar1             |                      | light gray
+load_cpu bar1 smooth      | light gray           | black
+load_cpu bar2             |                      | light blue
+load_cpu bar2 smooth      | light blue           | black
+
+# Memory
+
+memory background         |                      | black
+memory bar1               |                      | white
+memory bar1 smooth        | white                | black
+memory bar2               |                      | light gray
+memory bar2 smooth        | light gray           | black
+
+# Network
+
+network background        |                      | black
+network bar1              |                      | light magenta
+network bar1 smooth       | light magenta        | black
+network bar2              |                      | dark magenta
+network bar2 smooth       | dark magenta         | black
 
 ################
 # Bar Styles   #
