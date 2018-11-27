@@ -36,7 +36,7 @@ from urwid import (
 log = get_logger(__name__)
 
 
-class CoralBar(ProgressBar):
+class OptionalTextProgressBar(ProgressBar):
 
     def __init__(self, *args, has_text=True, **kwargs):
         self._has_text = has_text
@@ -45,16 +45,16 @@ class CoralBar(ProgressBar):
     def get_text(self):
         if self._has_text:
             return super().get_text()
-
         return ''
 
 
 class Bar(WidgetWrap):
-    def __init__(self, identifier, title, unit, rows=3):
+    def __init__(self, identifier, title, unit, symbol='%', rows=3):
 
         self._identifier = identifier
         self._title = title
         self._unit = unit
+        self._symbol = symbol
 
         self.title = Text(
             '{} ({})'.format(title, unit),
@@ -64,7 +64,7 @@ class Bar(WidgetWrap):
 
         middle = ceil(rows / 2) - 1
         self.bars = [
-            CoralBar(
+            OptionalTextProgressBar(
                 '{} normal'.format(identifier),
                 '{} complete'.format(identifier),
                 satt='{} smooth'.format(identifier),
@@ -84,23 +84,23 @@ class Bar(WidgetWrap):
             ])
         )
 
-    def push(self, percent=None, value=None, total=None):
+    def push(self, overview=None, value=None, total=None):
 
-        label = '{:.2f}%'
+        label = '{{:.1f}}{}'.format(self._symbol)
 
-        if percent is None:
+        if overview is None:
             if value is None or total is None:
                 raise RuntimeError(
                     'value and total must be passed when pushing data without '
-                    'the percent'
+                    'the overview'
                 )
-            percent = (float(value) / float(total)) * 100.0
+            overview = (float(value) / float(total)) * 100.0
             label = '{} [{}/{}]'.format(label, value, total)
 
-        self.label.set_text(label.format(percent))
+        self.label.set_text(label.format(overview))
 
         for bar in self.bars:
-            bar.set_completion(percent)
+            bar.set_completion(overview)
 
 
 __all__ = [

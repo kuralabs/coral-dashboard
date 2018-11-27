@@ -42,7 +42,7 @@ SCHEMA_PUSH = {
             'nullable': False,
             'empty': False,
             'schema': {
-                'percent': {
+                'overview': {
                     'required': True,
                     'type': 'float',
                     'nullable': True,

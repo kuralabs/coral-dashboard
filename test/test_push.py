@@ -35,52 +35,52 @@ def test_push(dashboard):
     while dashboard.is_alive():
         data = {
             'temp_coolant': {
-                'percent': uniform(24.0, 90.0),
+                'overview': uniform(24.0, 90.0),
                 'value': None,
                 'total': None,
             },
             'temp_gpu': {
-                'percent': uniform(24.0, 90.0),
+                'overview': uniform(24.0, 90.0),
                 'value': None,
                 'total': None,
             },
             'temp_cpu': {
-                'percent': uniform(24.0, 90.0),
+                'overview': uniform(24.0, 90.0),
                 'value': None,
                 'total': None,
             },
             'load_gpu': {
-                'percent': uniform(0.0, 100.0),
+                'overview': uniform(0.0, 100.0),
                 'value': None,
                 'total': None,
             },
             'load_cpu': {
-                'percent': uniform(0.0, 100.0),
+                'overview': uniform(0.0, 100.0),
                 'value': None,
                 'total': None,
             },
             'memory': {
-                'percent': None,
+                'overview': None,
                 'value': randint(512, 4096),
                 'total': 4096,
             },
             'network': {
-                'percent': None,
+                'overview': None,
                 'value': randint(0, 1000),
                 'total': 1000,
             },
             'pump': {
-                'percent': None,
+                'overview': None,
                 'value': randint(600, 1400),
                 'total': 1400,
             },
             'disk_os': {
-                'percent': None,
+                'overview': None,
                 'value': disk_os,
                 'total': 256,
             },
             'disk_apps': {
-                'percent': None,
+                'overview': None,
                 'value': disk_apps,
                 'total': 4096,
             },

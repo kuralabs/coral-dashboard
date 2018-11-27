@@ -82,17 +82,19 @@ class ScalableBarGraph(BarGraph):
 class Graph(WidgetWrap):
     MAX_ENTRIES = 200
 
-    def __init__(self, identifier, title, unit):
+    def __init__(self, identifier, title, unit, symbol='%', maxvalue=100.0):
 
         self._identifier = identifier
         self._title = title
         self._unit = unit
+        self._symbol = symbol
+        self._maxvalue = maxvalue
 
         self._data = [(0, 0)] * self.MAX_ENTRIES
         self._data_count = 0
 
         self.title = Text('{} ({})'.format(title, unit), align='left')
-        self.label = Text('0.00% [?/?]', align='right')
+        self.label = Text('0.0{} [?/?]'.format(symbol), align='right')
 
         self.graph = ScalableBarGraph(
             [
@@ -118,31 +120,31 @@ class Graph(WidgetWrap):
             ])
         )
 
-    def push(self, percent=None, value=None, total=None):
+    def push(self, overview=None, value=None, total=None):
 
         # Determine and change label
-        label = '{:.2f}%'
+        label = '{{:.1f}}{}'.format(self._symbol)
 
-        if percent is None:
+        if overview is None:
             if value is None or total is None:
                 raise RuntimeError(
                     'value and total must be passed when pushing data without '
-                    'the percent'
+                    'the overview'
                 )
-            percent = (float(value) / float(total)) * 100.0
+            overview = (float(value) / float(total)) * 100.0
             label = '{} [{}/{}]'.format(label, value, total)
 
-        self.label.set_text(label.format(percent))
+        self.label.set_text(label.format(overview))
 
         # Append new entry to data buffer
-        entry = (percent, 0) if self._data_count & 1 else (0, percent)
+        entry = (overview, 0) if self._data_count & 1 else (0, overview)
         self._data.append(entry)
 
         # Trim the buffer to MAX_ENTRIES and update data
         del self._data[0]
         self._data_count += 1
 
-        self.graph.set_data(self._data, 100.0)
+        self.graph.set_data(self._data, self._maxvalue)
 
 
 __all__ = [

@@ -161,6 +161,11 @@ class CoralUI:
 
     def __init__(self):
 
+        self._supported_widgets = {
+            'graph': Graph,
+            'bar': Bar,
+        }
+
         self.tree = OrderedDict()
         self.widgets = [
             # None - Divider
@@ -168,31 +173,80 @@ class CoralUI:
             # (WidgetType, identifier, title, unit) - Widget
             # [Widgets] - Columns
             None,
-            "Temperature",
+            'Temperature',
             [
-                (Graph, 'temp_coolant', 'Coolant', '°C'),
-                (Graph, 'temp_gpu', 'GPU', '°C'),
-                (Graph, 'temp_cpu', 'CPU', '°C'),
+                {
+                    'widget': 'graph',
+                    'identifier': 'temp_coolant',
+                    'title': 'Coolant',
+                    'unit': '°C',
+                    'symbol': '°',
+                }, {
+                    'widget': 'graph',
+                    'identifier': 'temp_gpu',
+                    'title': 'GPU',
+                    'unit': '°C',
+                    'symbol': '°',
+                }, {
+                    'widget': 'graph',
+                    'identifier': 'temp_cpu',
+                    'title': 'CPU',
+                    'unit': '°C',
+                    'symbol': '°',
+                },
             ],
             None,
-            (Bar, 'pump', 'Pump/Fans', 'RPM'),
+            {
+                'widget': 'bar',
+                'identifier': 'pump',
+                'title': 'Pump/Fans',
+                'unit': 'RPM',
+            },
             None,
-            "Load",
+            'Load',
             [
-                (Graph, 'load_gpu', 'GPU', '%'),
-                (Graph, 'load_cpu', 'CPU', '%'),
+                {
+                    'widget': 'graph',
+                    'identifier': 'load_gpu',
+                    'title': 'GPU',
+                    'unit': '%',
+                }, {
+                    'widget': 'graph',
+                    'identifier': 'load_cpu',
+                    'title': 'CPU',
+                    'unit': '%',
+                },
             ],
             None,
-            "Memory",
-            (Graph, 'memory', 'Memory', 'GB'),
+            'Memory',
+            {
+                'widget': 'graph',
+                'identifier': 'memory',
+                'title': 'Memory',
+                'unit': 'MB',
+            },
             None,
-            "Network",
-            (Graph, 'network', 'Network', 'Mbps'),
+            'Network',
+            {
+                'widget': 'graph',
+                'identifier': 'network',
+                'title': 'Network',
+                'unit': 'Mbps',
+            },
             None,
-            "Disk",
+            'Disk',
             [
-                (Bar, 'disk_os', 'C:// "Windows"', 'GB'),
-                (Bar, 'disk_apps', 'D:// "Storage"', 'GB'),
+                {
+                    'widget': 'bar',
+                    'identifier': 'disk_os',
+                    'title': 'C:// "Windows"',
+                    'unit': 'GB',
+                }, {
+                    'widget': 'bar',
+                    'identifier': 'disk_apps',
+                    'title': 'D:// "Storage"',
+                    'unit': 'GB',
+                },
             ]
         ]
 
@@ -200,8 +254,8 @@ class CoralUI:
         for descriptor in self.widgets:
 
             # Descriptor for an instance of a Graph or a Bar
-            if type(descriptor) is tuple:
-                widget = self._get_widget_instance(*descriptor)
+            if type(descriptor) is dict:
+                widget = self._get_widget_instance(**descriptor)
 
                 if isinstance(widget, Bar):
                     widget = ('pack', widget)
@@ -222,7 +276,7 @@ class CoralUI:
             #     columns are bars.
             elif type(descriptor) is list:
                 columns = [
-                    self._get_widget_instance(*column)
+                    self._get_widget_instance(**column)
                     for column in descriptor
                 ]
                 widget = Columns(columns, dividechars=1)
@@ -242,8 +296,9 @@ class CoralUI:
 
         self.topmost = Padding(Pile(rows), right=1, left=1)
 
-    def _get_widget_instance(self, widget, identifier, title, unit):
-        instance = widget(identifier, title, unit)
+    def _get_widget_instance(self, widget, identifier, **kwargs):
+        widgetclass = self._supported_widgets[widget]
+        instance = widgetclass(identifier, **kwargs)
         self.tree[identifier] = instance
         return instance
 
