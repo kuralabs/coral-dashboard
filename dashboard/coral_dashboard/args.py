@@ -62,7 +62,7 @@ def validate_args(args):
     logfrmt = (
         '  {thin_white}{asctime}{reset} | '
         '{log_color}{levelname:8}{reset} | '
-        '{log_color}{message}{reset}'
+        '{message}'
     )
 
     verbosity_levels = {
@@ -125,6 +125,7 @@ def parse_args(argv=None):
     parser.add_argument(
         '--port',
         help='TCP port',
+        type=int,
         default=5000,
     )
 

@@ -17,16 +17,22 @@
 
 from time import sleep
 from random import randint, uniform
+from logging import getLogger as get_logger
 
 from requests import post
+from requests.exceptions import ConnectionError
+
+
+log = get_logger(__name__)
 
 
 def test_push(dashboard):
+    endpoint = 'http://localhost:{}/api/push'.format(dashboard.port)
+
     disk_os = 60
     disk_apps = 500
 
-    while dashboard.returncode is None:
-        # FIXME: Do not hardwire port, make class that parametrizes this
+    while dashboard.is_alive():
         data = {
             'temp_coolant': {
                 'percent': uniform(24.0, 90.0),
@@ -81,19 +87,18 @@ def test_push(dashboard):
         }
 
         try:
-            response = post(  # noqa
-                'http://localhost:5000/api/push',
+            response = post(
+                endpoint,
                 headers={
                     'user-agent': 'coral/testsuite',
                     'content-type': 'application/json',
                 },
-                json={"data": data},
+                json={'data': data},
             )
+            assert response.status_code == 200
 
-        # FIXME: Clean user shutdown of the test doesn't seems to be working
-        except Exception as e:
-            sleep(1)
-            if dashboard.returncode is None:
+        except ConnectionError as e:
+            if dashboard.is_alive():
                 raise e
 
         disk_os += randint(0, 1)
