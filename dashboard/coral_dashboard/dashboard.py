@@ -19,6 +19,7 @@
 Coral dashboard RESTful API and UI module.
 """
 
+from functools import wraps
 from asyncio import get_event_loop
 from logging import getLogger as get_logger
 
@@ -27,8 +28,10 @@ from ujson import (
     loads as uloads,
 )
 from aiohttp import web
-from urwid import AsyncioEventLoop, MainLoop
+from pprintpp import pformat
+from urwid import MainLoop, AsyncioEventLoop
 from aiohttp_remotes import XForwardedRelaxed
+from aiohttp_cors import setup as CorsConfig, ResourceOptions
 
 from .ui.coral import CoralUI
 from .schema import validate_schema
@@ -61,6 +64,13 @@ def loads(json):
     return uloads(json, precise_float=True)
 
 
+def schema(schema_id):
+    def decorator(handler):
+        handler.__schema_id__ = schema_id
+        return handler
+    return decorator
+
+
 class Dashboard:
     """
     Main Dashboard application.
@@ -80,9 +90,30 @@ class Dashboard:
             # Just in case someone wants to use it behind a reverse proxy
             # Not sure why someone will want to do that though
             XForwardedRelaxed().middleware,
+            # Handle unexpected and HTTP exceptions
+            self._middleware_exceptions,
+            # Handle media type validation
+            self._middleware_media_type,
+            # Handle schema validation
+            self._middleware_schema,
         ])
+
         self.webapp.router.add_get('/api/logs', self.api_logs)
+        self.webapp.router.add_post('/api/config', self.api_config)
         self.webapp.router.add_post('/api/push', self.api_push)
+
+        # Enable CORS in case someone wants to build a web agent
+        self.cors = CorsConfig(
+            self.webapp, defaults={
+                '*': ResourceOptions(
+                    allow_credentials=True,
+                    expose_headers='*',
+                    allow_headers='*',
+                )
+            }
+        )
+        for route in self.webapp.router.routes():
+            self.cors.add(route)
 
         # Build Terminal UI App
         self.ui = CoralUI()
@@ -110,6 +141,135 @@ class Dashboard:
             print=None,
         )
 
+    async def _middleware_exceptions(self, app, handler):
+        """
+        Middleware that handlers the unexpected exceptions and HTTP standard
+        exceptions.
+
+        Unexpected exceptions are then returned as HTTP 500.
+        HTTP exceptions are returned in JSON.
+
+        :param app: Main web application object.
+        :param handler: Function to be executed to dispatch the request.
+
+        :return: A handler replacement function.
+        """
+
+        @wraps(handler)
+        async def wrapper(request):
+
+            # Log connection
+            metadata = {
+                'remote': request.remote,
+                'agent': request.headers['User-Agent'],
+                'content_type': request.content_type,
+            }
+
+            message = (
+                'Connection from {remote} using {content_type} '
+                'with user agent {agent}'
+            ).format(**metadata)
+            log.info(message)
+
+            try:
+                return await handler(request)
+
+            except web.HTTPException as e:
+                return web.json_response(
+                    {
+                        'error': e.reason
+                    },
+                    status=e.status,
+                )
+
+            except Exception as e:
+                response = {
+                    'error': ' '.join(str(arg) for arg in e.args),
+                }
+                log.exception('Unexpected server exception:\n{}'.format(
+                    pformat(response)
+                ))
+
+                return web.json_response(response, status=500)
+
+        return wrapper
+
+    async def _middleware_media_type(self, app, handler):
+        """
+        Middleware that handlers media type request and respones.
+
+        It checks for media type in the request, tries to parse the JSON and
+        converts dict responses to standard JSON responses.
+
+        :param app: Main web application object.
+        :param handler: Function to be executed to dispatch the request.
+
+        :return: A handler replacement function.
+        """
+
+        @wraps(handler)
+        async def wrapper(request):
+
+            # Check media type
+            if request.content_type != 'application/json':
+                raise web.HTTPUnsupportedMediaType(
+                    text=(
+                        'Invalid Content-Type "{}". '
+                        'Only "application/json" is supported.'
+                    ).format(request.content_type)
+                )
+
+            # Parse JSON request
+            body = await request.text()
+            try:
+                payload = loads(body)
+            except ValueError:
+                log.error('Invalid JSON payload:\n{}'.format(body))
+                raise web.HTTPBadRequest(
+                    text='Invalid JSON payload'
+                )
+
+            # Log request and responses
+            log.info('Request:\n{}'.format(pformat(payload)))
+            response = await handler(request, payload)
+            log.info('Response:\n{}'.format(pformat(response)))
+
+            # Convert dictionaries to JSON responses
+            if isinstance(response, dict):
+                return web.json_response(response)
+            return response
+
+        return wrapper
+
+    async def _middleware_schema(self, app, handler):
+        """
+        Middleware that validates the request against the schema defined for
+        the handler.
+
+        :param app: Main web application object.
+        :param handler: Function to be executed to dispatch the request.
+
+        :return: A handler replacement function.
+        """
+
+        schema_id = getattr(handler, '__schema_id__', None)
+        if schema_id is None:
+            return handler
+
+        @wraps(handler)
+        async def wrapper(request, payload):
+
+            # Validate payload
+            validated, errors = validate_schema(schema_id, payload)
+            if errors:
+                raise web.HTTPBadRequest(
+                    text='Invalid {} request:\n{}'.format(schema_id, errors)
+                )
+
+            return await handler(request, validated)
+
+        return wrapper
+
     async def api_logs(self, request):
         """
         Endpoint to get dashboard logs.
@@ -118,54 +278,27 @@ class Dashboard:
             return 'No logs configured'
         return web.FileResponse(self.logs)
 
-    async def api_push(self, request):
+    @schema('config')
+    async def api_config(self, request):
+        """
+        Endpoint configure UI.
+        """
+        return {
+            'not': 'implemented'
+        }
+
+    @schema('push')
+    async def api_push(self, request, validated):
         """
         Endpoint to push data to the dashboard.
         """
 
-        # Check media type
-        if request.content_type != 'application/json':
-            raise web.HTTPUnsupportedMediaType(
-                text=(
-                    'Invalid Content-Type "{}". '
-                    'Only "application/json" is supported.'
-                ).format(request.content_type)
-            )
-
-        # Log request
-        metadata = {
-            'remote': request.remote,
-            'agent': request.headers['User-Agent'],
-            'content_type': request.content_type,
-        }
-
-        message = (
-            'Request from {remote} using {content_type} with user '
-            'agent {agent}'
-        ).format(**metadata)
-        log.info(message)
-
-        # Parse JSON request
-        body = await request.text()
-        try:
-            payload = loads(body)
-        except ValueError:
-            log.error('Invalid JSON payload:\n{}'.format(body))
-            raise web.HTTPBadRequest(
-                text='Invalid JSON payload'
-            )
-
-        # Validate payload
-        validated, errors = validate_schema('push', payload)
-        if errors:
-            raise web.HTTPBadRequest(
-                text='Invalid PUSH request:\n{}'.format(errors)
-            )
-
         # Push data to UI
-        self.ui.push(validated['data'])
+        pushed = self.ui.push(validated['data'])
 
-        return web.json_response(metadata, dumps=dumps)
+        return {
+            'pushed': pushed,
+        }
 
 
 __all__ = [

@@ -4,6 +4,7 @@ urwid
 # Web Framework
 ujson
 aiohttp
+aiohttp-cors
 aiohttp-remotes
 cchardet
 aiodns

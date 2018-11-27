@@ -303,6 +303,9 @@ class CoralUI:
         return instance
 
     def push(self, data):
+
+        pushed = 0
+
         for key, value in data.items():
             if key not in self.tree:
                 log.warning(
@@ -311,6 +314,9 @@ class CoralUI:
                 continue
 
             self.tree[key].push(**value)
+            pushed += 1
+
+        return pushed
 
 
 __all__ = [
