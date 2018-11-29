@@ -16,7 +16,7 @@
 # under the License.
 
 """
-Coral dashboard RESTful API and UI module.
+Coral dashboard RESTful API manager.
 """
 
 from functools import wraps
@@ -33,7 +33,7 @@ from urwid import MainLoop, AsyncioEventLoop
 from aiohttp_remotes import XForwardedRelaxed
 from aiohttp_cors import setup as CorsConfig, ResourceOptions
 
-from .ui.coral import CoralUI
+from .ui.manager import UIManager
 from .schema import validate_schema
 
 
@@ -116,10 +116,10 @@ class Dashboard:
             self.cors.add(route)
 
         # Build Terminal UI App
-        self.ui = CoralUI()
+        self.ui = UIManager()
         self.tuiapp = MainLoop(
             self.ui.topmost,
-            self.ui.palette,
+            palette=self.ui.palette,
             event_loop=AsyncioEventLoop(loop=get_event_loop())
         )
 
@@ -278,14 +278,16 @@ class Dashboard:
             return 'No logs configured'
         return web.FileResponse(self.logs)
 
-    @schema('config')
-    async def api_config(self, request):
+    # FIXME: Let's disable schema validation for now
+    # @schema('config')
+    async def api_config(self, request, validated):
         """
         Endpoint configure UI.
         """
-        return {
-            'not': 'implemented'
-        }
+        tree = self.ui.build(validated['widgets'], validated['title'])
+        self.tuiapp.screen.register_palette(validated['palette'])
+        self.tuiapp.draw_screen()
+        return tree
 
     @schema('push')
     async def api_push(self, request, validated):
@@ -294,7 +296,7 @@ class Dashboard:
         """
 
         # Push data to UI
-        pushed = self.ui.push(validated['data'])
+        pushed = self.ui.push(validated['data'], validated['title'])
 
         return {
             'pushed': pushed,

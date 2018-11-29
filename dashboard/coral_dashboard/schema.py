@@ -28,6 +28,13 @@ log = get_logger(__name__)
 
 
 SCHEMA_PUSH = {
+    'title': {
+        'type': 'string',
+        'empty': True,
+        'required': False,
+        'nullable': True,
+        'default': None,
+    },
     'data': {
         'required': True,
         'type': 'dict',

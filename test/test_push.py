@@ -16,23 +16,49 @@
 # under the License.
 
 from time import sleep
+from datetime import datetime
 from random import randint, uniform
 from logging import getLogger as get_logger
 
 from requests import post
 from requests.exceptions import ConnectionError
 
+from coral_agent.palette import parse_palette
+from coral_agent.coral import CORAL_PALETTE, CORAL_WIDGETS
+
 
 log = get_logger(__name__)
 
 
 def test_push(dashboard):
-    endpoint = 'http://localhost:{}/api/push'.format(dashboard.port)
+
+    endpoint = 'http://localhost:{}/api/{{}}'.format(dashboard.port)
+
+    # Configure the UI first
+    log.info('Let\'s wait 5 seconds before configuring ...')
+    sleep(5)
+
+    response = post(
+        endpoint.format('config'),
+        headers={
+            'user-agent': 'coral/testsuite',
+            'content-type': 'application/json',
+        },
+        json={
+            'palette': parse_palette(CORAL_PALETTE),
+            'widgets': CORAL_WIDGETS,
+            'title': 'Coral Dashboard - {version}',
+        },
+    )
+    assert response.status_code == 200
 
     disk_os = 60
     disk_apps = 500
 
     while dashboard.is_alive():
+        title = 'Coral Dashboard - {{version}} - {}'.format(
+            datetime.now().replace(microsecond=0).isoformat()
+        )
         data = {
             'temp_coolant': {
                 'overview': uniform(24.0, 90.0),
@@ -88,12 +114,15 @@ def test_push(dashboard):
 
         try:
             response = post(
-                endpoint,
+                endpoint.format('push'),
                 headers={
                     'user-agent': 'coral/testsuite',
                     'content-type': 'application/json',
                 },
-                json={'data': data},
+                json={
+                    'title': title,
+                    'data': data,
+                },
             )
             assert response.status_code == 200
 
