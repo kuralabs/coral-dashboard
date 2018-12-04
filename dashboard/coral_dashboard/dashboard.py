@@ -20,7 +20,8 @@ Coral dashboard RESTful API manager.
 """
 
 from functools import wraps
-from asyncio import get_event_loop
+from datetime import datetime
+from asyncio import get_event_loop, sleep
 from logging import getLogger as get_logger
 
 from ujson import (
@@ -116,11 +117,15 @@ class Dashboard:
             self.cors.add(route)
 
         # Build Terminal UI App
+        self.timestamp = None
+        event_loop = get_event_loop()
+        event_loop.create_task(self._check_last_timestamp())
+
         self.ui = UIManager()
         self.tuiapp = MainLoop(
             self.ui.topmost,
             palette=self.ui.palette,
-            event_loop=AsyncioEventLoop(loop=get_event_loop())
+            event_loop=AsyncioEventLoop(loop=event_loop)
         )
 
     def run(self):
@@ -140,6 +145,17 @@ class Dashboard:
             port=self.port,
             print=None,
         )
+
+    async def _check_last_timestamp(self):
+        while True:
+            if self.timestamp is not None:
+                now = datetime.now()
+                elapsed = now - self.timestamp
+
+                if elapsed.seconds >= 10:
+                    # FIXME: Change this to self.show_message()
+                    log.error('Should show message!!')
+            await sleep(1)
 
     async def _middleware_exceptions(self, app, handler):
         """
@@ -294,6 +310,7 @@ class Dashboard:
         """
         Endpoint to push data to the dashboard.
         """
+        self.timestamp = datetime.now()
 
         # Push data to UI
         pushed = self.ui.push(validated['data'], validated['title'])
