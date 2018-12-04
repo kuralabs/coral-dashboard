@@ -102,6 +102,7 @@ class Dashboard:
         self.webapp.router.add_get('/api/logs', self.api_logs)
         self.webapp.router.add_post('/api/config', self.api_config)
         self.webapp.router.add_post('/api/push', self.api_push)
+        self.webapp.router.add_post('/api/message', self.api_message)
 
         # Enable CORS in case someone wants to build a web agent
         self.cors = CorsConfig(
@@ -124,8 +125,9 @@ class Dashboard:
         self.ui = UIManager()
         self.tuiapp = MainLoop(
             self.ui.topmost,
+            pop_ups=True,
             palette=self.ui.palette,
-            event_loop=AsyncioEventLoop(loop=event_loop)
+            event_loop=AsyncioEventLoop(loop=event_loop),
         )
 
     def run(self):
@@ -147,14 +149,19 @@ class Dashboard:
         )
 
     async def _check_last_timestamp(self):
+        """
+        FIXME: Document.
+        """
         while True:
             if self.timestamp is not None:
                 now = datetime.now()
                 elapsed = now - self.timestamp
 
                 if elapsed.seconds >= 10:
-                    # FIXME: Change this to self.show_message()
-                    log.error('Should show message!!')
+                    self.ui.topmost.show(
+                        'WARNING! Lost contact with agent {} '
+                        'seconds ago!'.format(elapsed.seconds)
+                    )
             await sleep(1)
 
     async def _middleware_exceptions(self, app, handler):
@@ -291,14 +298,14 @@ class Dashboard:
         Endpoint to get dashboard logs.
         """
         if self.logs is None:
-            return 'No logs configured'
+            raise web.HTTPNotFound(text='No logs configured')
         return web.FileResponse(self.logs)
 
     # FIXME: Let's disable schema validation for now
     # @schema('config')
     async def api_config(self, request, validated):
         """
-        Endpoint configure UI.
+        Endpoint to configure UI.
         """
         tree = self.ui.build(validated['widgets'], validated['title'])
         self.tuiapp.screen.register_palette(validated['palette'])
@@ -317,6 +324,25 @@ class Dashboard:
 
         return {
             'pushed': pushed,
+        }
+
+    # FIXME: Let's disable schema validation for now
+    # @schema('message')
+    async def api_message(self, request, validated):
+        """
+        Endpoint to a message in UI.
+        """
+        message = validated.pop('message')
+
+        if message:
+            self.ui.topmost.show(message, **validated)
+        else:
+            self.ui.topmost.hide()
+
+        self.tuiapp.draw_screen()
+
+        return {
+            'message': message,
         }
 
 

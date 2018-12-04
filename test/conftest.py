@@ -48,6 +48,10 @@ class Dashboard:
             pformat(dict(environ)),
         ))
 
+    @property
+    def endpoint(self):
+        return 'http://localhost:{}/api/{{}}'.format(self.port)
+
     def _find_free_tcp_port(self):
         with closing(socket(AF_INET, SOCK_STREAM)) as sock:
             sock.bind(('', 0))

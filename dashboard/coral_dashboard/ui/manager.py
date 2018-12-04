@@ -49,27 +49,33 @@ class MessageShower(PopUpLauncher):
     def __init__(self, body, width, height):
         self._width = width
         self._height = height
-        self._text = Text('', align='center')
+
+        self._width_last = width
+        self._height_last = height
+
+        self._text = ''
+
         super().__init__(body)
 
-    def show(self, text, icon='WARNING'):
-        self._text.set_text(
-            '{} {}'.format(self.ICONS[icon], text)
-        )
+    def show(self, text, width=None, height=None, icon='WARNING'):
+        self._width_last = width or self._width
+        self._height_last = height or self._height
+        self._text = '{} {}'.format(self.ICONS[icon], text)
+
         self.open_pop_up()
 
     def hide(self):
         self.close_pop_up()
 
     def create_pop_up(self):
-        return self._text
+        return Filler(Text(self._text, align='center'))
 
     def get_pop_up_parameters(self):
         return {
             'left': 0,
             'top': 1,
-            'overlay_width': self._width,
-            'overlay_height': self._height,
+            'overlay_width': self._width_last,
+            'overlay_height': self._height_last,
         }
 
 
@@ -81,6 +87,8 @@ class UIManager:
     }
 
     DEFAULT_TITLE = 'Coral Dashboard - {version}'
+    DEFAULT_MESSAGE_WIDTH = 15
+    DEFAULT_MESSAGE_HEIGHT = 7
 
     def __init__(self):
         self._body = WidgetPlaceholder(Pile([
@@ -100,8 +108,8 @@ class UIManager:
         self.palette = ()
         self.topmost = MessageShower(
             self._wrapper,
-            width=32,
-            height=7,
+            width=self.DEFAULT_MESSAGE_WIDTH,
+            height=self.DEFAULT_MESSAGE_HEIGHT,
         )
         self.tree = OrderedDict()
 
@@ -166,19 +174,14 @@ class UIManager:
             title = self.DEFAULT_TITLE
 
         self._wrapper.set_title(title.format(version=__version__))
-
         self._body.original_widget = Pile(rows)
-        self.tree = tree
+
+        self.tree.clear()
+        self.tree.update(tree)
 
         return {
             'tree': list(tree)
         }
-
-    def popup_show(self, message):
-        self._body.show()
-
-    def popup_hide(self):
-        self._body.hide()
 
     def push(self, data, title):
 

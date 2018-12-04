@@ -32,14 +32,12 @@ log = get_logger(__name__)
 
 def test_push(dashboard):
 
-    endpoint = 'http://localhost:{}/api/{{}}'.format(dashboard.port)
-
     # Configure the UI first
     log.info('Let\'s wait 5 seconds before configuring ...')
     sleep(5)
 
     response = post(
-        endpoint.format('config'),
+        dashboard.endpoint.format('config'),
         headers={
             'user-agent': 'coral/testsuite',
             'content-type': 'application/json',
@@ -54,6 +52,7 @@ def test_push(dashboard):
 
     disk_os = 60
     disk_apps = 500
+    loop_count = 0
 
     while dashboard.is_alive():
         title = 'Coral Dashboard - {{version}} - {}'.format(
@@ -114,7 +113,7 @@ def test_push(dashboard):
 
         try:
             response = post(
-                endpoint.format('push'),
+                dashboard.endpoint.format('push'),
                 headers={
                     'user-agent': 'coral/testsuite',
                     'content-type': 'application/json',
@@ -126,11 +125,30 @@ def test_push(dashboard):
             )
             assert response.status_code == 200
 
+            loop_stage = loop_count % 10
+            if loop_stage in [0, 1]:
+
+                message = '' if loop_stage else \
+                    'Testing message at loop stage {}'.format(loop_stage)
+
+                response = post(
+                    dashboard.endpoint.format('message'),
+                    headers={
+                        'user-agent': 'coral/testsuite',
+                        'content-type': 'application/json',
+                    },
+                    json={
+                        'message': message,
+                    },
+                )
+                assert response.status_code == 200
+
         except ConnectionError as e:
             if dashboard.is_alive():
                 raise e
 
         disk_os += randint(0, 1)
         disk_apps += 1
+        loop_count += 1
 
         sleep(1)
