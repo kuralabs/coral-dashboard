@@ -66,6 +66,9 @@ def loads(json):
 
 
 def schema(schema_id):
+    """
+    Decorator to assign a schema name to an endpoint handler.
+    """
     def decorator(handler):
         handler.__schema_id__ = schema_id
         return handler
@@ -81,6 +84,8 @@ class Dashboard:
 
     :param int port: A TCP port to serve from.
     """
+
+    DEFAULT_HEARTBEAT_MAX = 10
 
     def __init__(self, port, logs=None):
 
@@ -117,11 +122,13 @@ class Dashboard:
         for route in self.webapp.router.routes():
             self.cors.add(route)
 
-        # Build Terminal UI App
-        self.timestamp = None
+        # Create task for the push hearbeat
         event_loop = get_event_loop()
-        event_loop.create_task(self._check_last_timestamp())
 
+        self.timestamp = None
+        self.heartbeat = event_loop.create_task(self._check_last_timestamp())
+
+        # Build Terminal UI App
         self.ui = UIManager()
         self.tuiapp = MainLoop(
             self.ui.topmost,
@@ -137,6 +144,7 @@ class Dashboard:
 
         self.tuiapp.start()
         self.webapp.on_shutdown.append(lambda app: self.tuiapp.stop())
+        self.webapp.on_shutdown.append(lambda app: self.heartbeat.cancel())
 
         # This is aiohttp blocking call that starts the loop. By default, it
         # will use the asyncio default loop. It would be nice that we could
@@ -157,7 +165,7 @@ class Dashboard:
                 now = datetime.now()
                 elapsed = now - self.timestamp
 
-                if elapsed.seconds >= 10:
+                if elapsed.seconds >= self.DEFAULT_HEARTBEAT_MAX:
                     self.ui.topmost.show(
                         'WARNING! Lost contact with agent {} '
                         'seconds ago!'.format(elapsed.seconds)
@@ -321,6 +329,7 @@ class Dashboard:
 
         # Push data to UI
         pushed = self.ui.push(validated['data'], validated['title'])
+        self.tuiapp.draw_screen()
 
         return {
             'pushed': pushed,
