@@ -342,9 +342,10 @@ class Dashboard:
         Endpoint to a message in UI.
         """
         message = validated.pop('message')
+        title = validated.pop('title')
 
         if message:
-            self.ui.topmost.show(message, **validated)
+            self.ui.topmost.show(title, message, **validated)
         else:
             self.ui.topmost.hide()
 

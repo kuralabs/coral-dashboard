@@ -130,6 +130,8 @@ def test_push(dashboard):
 
                 message = '' if loop_stage else \
                     'Testing message at loop stage {}'.format(loop_stage)
+                title = 'Testing title for message'
+                width = 0.5
 
                 response = post(
                     dashboard.endpoint.format('message'),
@@ -139,6 +141,8 @@ def test_push(dashboard):
                     },
                     json={
                         'message': message,
+                        'title': title,
+                        'width': width,
                     },
                 )
                 assert response.status_code == 200

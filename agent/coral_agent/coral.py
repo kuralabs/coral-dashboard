@@ -124,6 +124,7 @@ disk_apps label           | white, bold          |
 ####################
 
 section title             | black, bold          | white
+popup                     | black, bold          | white
 """
 
 

@@ -64,10 +64,11 @@ class MessageShower(PopUpLauncher):
 
         return canvas
 
-    def show(self, text, width=None, height=None, icon='WARNING'):
+    def show(self, title, text, width=None, height=None, type='WARNING'):
         self._width_last = width or self._width
         self._height_last = height or self._height
-        self._text = '{} {}'.format(self.ICONS[icon], text)
+        self._text = '{} {}'.format(self.ICONS[type], text)
+        self._title = title
 
         self.open_pop_up()
 
@@ -75,7 +76,12 @@ class MessageShower(PopUpLauncher):
         self.close_pop_up()
 
     def create_pop_up(self):
-        return Filler(Text(self._text, align='center'))
+        line_box = LineBox(
+            Filler(Text(self._text, align='center')),
+            title=self._title,
+        )
+
+        return AttrMap(line_box, 'popup')
 
     def get_pop_up_parameters(self):
         rows, cols = self._size
