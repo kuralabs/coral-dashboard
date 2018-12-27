@@ -54,8 +54,15 @@ class MessageShower(PopUpLauncher):
         self._height_last = height
 
         self._text = ''
+        self._size = (0, 0)
 
         super().__init__(body)
+
+    def render(self, size, focus=False):
+        canvas = super().render(size, focus)
+        self._size = (canvas.rows(), canvas.cols())
+
+        return canvas
 
     def show(self, text, width=None, height=None, icon='WARNING'):
         self._width_last = width or self._width
@@ -71,11 +78,13 @@ class MessageShower(PopUpLauncher):
         return Filler(Text(self._text, align='center'))
 
     def get_pop_up_parameters(self):
+        rows, cols = self._size
+
         return {
-            'left': 0,
-            'top': 1,
-            'overlay_width': self._width_last,
-            'overlay_height': self._height_last,
+            'left': round((cols - (cols * self._width_last)) / 2),
+            'top': round((rows - (rows * self._height_last)) / 2),
+            'overlay_width': int(self._width_last * cols),
+            'overlay_height': int(self._height_last * rows),
         }
 
 
@@ -87,8 +96,8 @@ class UIManager:
     }
 
     DEFAULT_TITLE = 'Coral Dashboard - {version}'
-    DEFAULT_MESSAGE_WIDTH = 15
-    DEFAULT_MESSAGE_HEIGHT = 7
+    DEFAULT_MESSAGE_WIDTH = 0.5
+    DEFAULT_MESSAGE_HEIGHT = 0.5
 
     def __init__(self):
         self._body = WidgetPlaceholder(Pile([
