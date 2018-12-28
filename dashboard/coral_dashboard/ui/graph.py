@@ -48,6 +48,9 @@ class ScalableBarGraph(BarGraph):
             File ".../urwid/graphics.py", line 397, in calculate_bar_widths
                 len(bardata), maxcol / self.bar_width)
             TypeError: can't multiply sequence by non-int of type 'float'
+
+        Fixed in https://github.com/urwid/urwid/pull/325 (merged) but not yet
+        released.
         """
         (maxcol, maxrow) = size
 

@@ -53,6 +53,8 @@ SCHEMA_PUSH = {
                     'required': True,
                     'type': 'float',
                     'nullable': True,
+                    'max': 100.0,
+                    'min': 0.0,
                 },
                 'value': {
                     'required': True,

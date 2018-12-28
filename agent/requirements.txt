@@ -1,0 +1,6 @@
+psutil
+py3nvml
+requests
+pprintpp
+colorlog
+setproctitle

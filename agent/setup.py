@@ -152,7 +152,17 @@ setup(
     packages=find_packages(),
 
     # Dependencies
-    install_requires=find_requirements('requirements.txt'),
+    install_requires=find_requirements('requirements.txt') + [
+        '{}; platform_system == "Windows"'.format(requirement)
+        for requirement in find_requirements('requirements.windows.txt')
+    ],
+
+    # Data files
+    package_data={
+        'coral_agent': [
+            'data/*',
+        ],
+    },
 
     # Metadata
     author='KuraLabs S.R.L',
@@ -170,8 +180,11 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         'Operating System :: POSIX :: Linux',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: Microsoft :: Windows :: Windows 10',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ],
     python_requires='>=3.5.0',
 

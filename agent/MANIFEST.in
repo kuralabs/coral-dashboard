@@ -1,2 +1,2 @@
-include README.rst LICENSE requirements.txt
+include README.rst LICENSE requirements.txt requirements.windows.txt
 global-exclude __pycache__ *.py[co]
