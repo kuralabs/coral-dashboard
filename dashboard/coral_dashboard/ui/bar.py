@@ -49,18 +49,28 @@ class OptionalTextProgressBar(ProgressBar):
 
 
 class Bar(WidgetWrap):
-    def __init__(self, identifier, title, unit, symbol='%', rows=3):
+    def __init__(self, identifier, left_tpl, right_tpl, rows=3):
 
         self._identifier = identifier
-        self._title = title
-        self._unit = unit
-        self._symbol = symbol
+        self._left_tpl = left_tpl
+        self._right_tpl = right_tpl
 
-        self.title = Text(
-            '{} ({})'.format(title, unit),
-            align='left'
+        self.left_label = Text(
+            self._left_tpl.format(
+                quotient=0.0,
+                value=0.0,
+                total=0.0,
+            ),
+            align='left',
         )
-        self.label = Text('', align='right')
+        self.right_label = Text(
+            self._right_tpl.format(
+                quotient=0.0,
+                value=0.0,
+                total=0.0,
+            ),
+            align='right',
+        )
 
         middle = ceil(rows / 2) - 1
         self.bars = [
@@ -75,8 +85,14 @@ class Bar(WidgetWrap):
         super().__init__(
             Pile([
                 ('pack', Columns([
-                    AttrMap(self.title, '{} title'.format(identifier)),
-                    AttrMap(self.label, '{} label'.format(identifier)),
+                    AttrMap(
+                        self.left_label,
+                        '{} left_label'.format(identifier)
+                    ),
+                    AttrMap(
+                        self.right_label,
+                        '{} right_label'.format(identifier)
+                    ),
                 ], dividechars=1)),
             ] + [
                 ('pack', bar)
@@ -84,23 +100,29 @@ class Bar(WidgetWrap):
             ])
         )
 
-    def push(self, overview=None, value=None, total=None):
+    def push(self, value, total):
 
-        label = '{{:.1f}}{}'.format(self._symbol)
+        # Calculate proportion
+        quotient = (value / total) * 100.0
 
-        if overview is None:
-            if value is None or total is None:
-                raise RuntimeError(
-                    'value and total must be passed when pushing data without '
-                    'the overview'
-                )
-            overview = (float(value) / float(total)) * 100.0
-            label = '{} [{}/{}]'.format(label, value, total)
-
-        self.label.set_text(label.format(overview))
+        # Update labels
+        self.left_label.set_text(
+            self._left_tpl.format(
+                quotient=quotient,
+                value=value,
+                total=total,
+            )
+        )
+        self.right_label.set_text(
+            self._right_tpl.format(
+                quotient=quotient,
+                value=value,
+                total=total,
+            )
+        )
 
         for bar in self.bars:
-            bar.set_completion(overview)
+            bar.set_completion(quotient)
 
 
 __all__ = [

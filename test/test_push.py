@@ -60,57 +60,46 @@ def test_push(dashboard):
         )
         data = {
             'temp_coolant': {
-                'overview': uniform(24.0, 90.0),
-                'value': None,
-                'total': None,
+                'value': uniform(24.0, 60.0),
+                'total': 60.0,
             },
             'temp_gpu': {
-                'overview': uniform(24.0, 90.0),
-                'value': None,
-                'total': None,
+                'value': uniform(24.0, 96.0),
+                'total': 96.0,
             },
             'temp_cpu': {
-                'overview': uniform(24.0, 90.0),
-                'value': None,
-                'total': None,
+                'value': uniform(24.0, 100.0),
+                'total': 100.0,
             },
             'load_gpu': {
-                'overview': uniform(0.0, 100.0),
-                'value': None,
-                'total': None,
+                'value': uniform(0.0, 100.0),
+                'total': 100.0,
             },
             'load_cpu': {
-                'overview': uniform(0.0, 100.0),
-                'value': None,
-                'total': None,
+                'value': uniform(0.0, 100.0),
+                'total': 100.0,
             },
             'memory': {
-                'overview': None,
                 'value': randint(512, 4096),
                 'total': 4096,
             },
             'network_rx': {
-                'overview': None,
                 'value': randint(0, 1000),
                 'total': 1000,
             },
             'network_tx': {
-                'overview': None,
                 'value': randint(0, 1000),
                 'total': 1000,
             },
             'pump': {
-                'overview': None,
-                'value': randint(600, 1400),
-                'total': 1400,
+                'value': randint(600, 4800),
+                'total': 4800,
             },
             'disk_os': {
-                'overview': None,
                 'value': disk_os,
                 'total': 256,
             },
             'disk_apps': {
-                'overview': None,
                 'value': disk_apps,
                 'total': 4096,
             },

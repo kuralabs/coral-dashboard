@@ -64,24 +64,24 @@ temp_coolant bar1         |                      | light red
 temp_coolant bar1 smooth  | light red            | black
 temp_coolant bar2         |                      | dark red
 temp_coolant bar2 smooth  | dark red             | black
-temp_coolant title        | white, bold          |
-temp_coolant label        | white, bold          |
+temp_coolant left_label   | white, bold          |
+temp_coolant right_label  | white, bold          |
 
 temp_gpu background       |                      | black
 temp_gpu bar1             |                      | light green
 temp_gpu bar1 smooth      | light green          | black
 temp_gpu bar2             |                      | dark green
 temp_gpu bar2 smooth      | dark green           | black
-temp_gpu title            | white, bold          |
-temp_gpu label            | white, bold          |
+temp_gpu left_label       | white, bold          |
+temp_gpu right_label      | white, bold          |
 
 temp_cpu background       |                      | black
 temp_cpu bar1             |                      | light blue
 temp_cpu bar1 smooth      | light blue           | black
 temp_cpu bar2             |                      | dark blue
 temp_cpu bar2 smooth      | dark blue            | black
-temp_cpu title            | white, bold          |
-temp_cpu label            | white, bold          |
+temp_cpu left_label       | white, bold          |
+temp_cpu right_label      | white, bold          |
 
 # Load
 
@@ -90,16 +90,16 @@ load_gpu bar1             |                      | dark gray
 load_gpu bar1 smooth      | dark gray            | black
 load_gpu bar2             |                      | dark green
 load_gpu bar2 smooth      | dark green           | black
-load_gpu title            | white, bold          |
-load_gpu label            | white, bold          |
+load_gpu left_label       | white, bold          |
+load_gpu right_label      | white, bold          |
 
 load_cpu background       |                      | black
 load_cpu bar1             |                      | dark gray
 load_cpu bar1 smooth      | dark gray            | black
 load_cpu bar2             |                      | dark blue
 load_cpu bar2 smooth      | dark blue            | black
-load_cpu title            | white, bold          |
-load_cpu label            | white, bold          |
+load_cpu left_label       | white, bold          |
+load_cpu right_label      | white, bold          |
 
 # Memory
 
@@ -108,8 +108,8 @@ memory bar1               |                      | white
 memory bar1 smooth        | white                | black
 memory bar2               |                      | light gray
 memory bar2 smooth        | light gray           | black
-memory title              | white, bold          |
-memory label              | white, bold          |
+memory left_label         | white, bold          |
+memory right_label        | white, bold          |
 
 # Network
 
@@ -118,16 +118,16 @@ network_rx bar1           |                      | light magenta
 network_rx bar1 smooth    | light magenta        | black
 network_rx bar2           |                      | dark magenta
 network_rx bar2 smooth    | dark magenta         | black
-network_rx title          | white, bold          |
-network_rx label          | white, bold          |
+network_rx left_label     | white, bold          |
+network_rx right_label    | white, bold          |
 
 network_tx background     |                      | black
 network_tx bar1           |                      | light magenta
 network_tx bar1 smooth    | light magenta        | black
 network_tx bar2           |                      | dark magenta
 network_tx bar2 smooth    | dark magenta         | black
-network_tx title          | white, bold          |
-network_tx label          | white, bold          |
+network_tx left_label     | white, bold          |
+network_tx right_label    | white, bold          |
 
 ################
 # Bar Styles   #
@@ -136,20 +136,20 @@ network_tx label          | white, bold          |
 pump normal               | white                | dark gray
 pump complete             | white                | dark red
 pump smooth               | dark gray            | white
-pump title                | white, bold          |
-pump label                | white, bold          |
+pump left_label           | white, bold          |
+pump right_label          | white, bold          |
 
 disk_os normal            | white                | dark gray
 disk_os complete          | white                | dark cyan
 disk_os smooth            | dark gray            | white
-disk_os title             | white, bold          |
-disk_os label             | white, bold          |
+disk_os left_label        | white, bold          |
+disk_os right_label       | white, bold          |
 
 disk_apps normal          | white                | dark gray
 disk_apps complete        | white                | brown
 disk_apps smooth          | dark gray            | black
-disk_apps title           | white, bold          |
-disk_apps label           | white, bold          |
+disk_apps left_label      | white, bold          |
+disk_apps right_label     | white, bold          |
 
 ####################
 #  General Styles  #
@@ -170,29 +170,26 @@ CORAL_WIDGETS = [
         {
             'widget': 'graph',
             'identifier': 'temp_coolant',
-            'title': 'Coolant',
-            'unit': '°C',
-            'symbol': '°',
+            'left_tpl': 'Coolant',
+            'right_tpl': '{quotient:.1f}% [{value:.0f}/{total:.0f}]°C',
         }, {
             'widget': 'graph',
             'identifier': 'temp_gpu',
-            'title': 'GPU',
-            'unit': '°C',
-            'symbol': '°',
+            'left_tpl': 'GPU',
+            'right_tpl': '{quotient:.1f}% [{value:.0f}/{total:.0f}]°C',
         }, {
             'widget': 'graph',
             'identifier': 'temp_cpu',
-            'title': 'CPU',
-            'unit': '°C',
-            'symbol': '°',
+            'left_tpl': 'CPU',
+            'right_tpl': '{quotient:.1f}% [{value:.0f}/{total:.0f}]°C',
         },
     ],
     None,
     {
         'widget': 'bar',
         'identifier': 'pump',
-        'title': 'Pump',
-        'unit': 'RPM',
+        'left_tpl': 'Pump',
+        'right_tpl': '{quotient:.1f}% [{value:.0f}/{total:.0f}]RPM',
     },
     None,
     'Load',
@@ -200,13 +197,13 @@ CORAL_WIDGETS = [
         {
             'widget': 'graph',
             'identifier': 'load_gpu',
-            'title': 'GPU',
-            'unit': '%',
+            'left_tpl': 'GPU',
+            'right_tpl': '{quotient:.1f}%',
         }, {
             'widget': 'graph',
             'identifier': 'load_cpu',
-            'title': 'CPU',
-            'unit': '%',
+            'left_tpl': 'CPU',
+            'right_tpl': '{quotient:.1f}%',
         },
     ],
     None,
@@ -214,8 +211,8 @@ CORAL_WIDGETS = [
     {
         'widget': 'graph',
         'identifier': 'memory',
-        'title': 'Memory',
-        'unit': 'MB',
+        'left_tpl': 'Memory',
+        'right_tpl': '{quotient:.1f}% [{value:.0f}/{total:.0f}]MB',
     },
     None,
     'Network',
@@ -223,13 +220,13 @@ CORAL_WIDGETS = [
         {
             'widget': 'graph',
             'identifier': 'network_rx',
-            'title': 'Download',
-            'unit': 'Mbps',
+            'left_tpl': 'Download',
+            'right_tpl': '{value:.0f}Mbps',
         }, {
             'widget': 'graph',
             'identifier': 'network_tx',
-            'title': 'Upload',
-            'unit': 'Mbps',
+            'left_tpl': 'Upload',
+            'right_tpl': '{value:.0f}Mbps',
         },
     ],
     None,
@@ -238,13 +235,13 @@ CORAL_WIDGETS = [
         {
             'widget': 'bar',
             'identifier': 'disk_os',
-            'title': '{} "Windows"'.format(PATH_OS),
-            'unit': 'GB',
+            'left_tpl': '{} "Windows"'.format(PATH_OS),
+            'right_tpl': '{quotient:.1f}% [{value:.0f}/{total:.0f}]GB',
         }, {
             'widget': 'bar',
             'identifier': 'disk_apps',
-            'title': '{} "Archive"'.format(PATH_ARCHIVE),
-            'unit': 'GB',
+            'left_tpl': '{} "Archive"'.format(PATH_ARCHIVE),
+            'right_tpl': '{quotient:.1f}% [{value:.0f}/{total:.0f}]GB',
         },
     ]
 ]
@@ -333,7 +330,6 @@ class CoralAgent(GenericAgent):
         )
 
         return {
-            'overview': None,
             'value': float(temperature),
             # Coral has an Nvidia GeForce GTX 1080 Ti
             # TJMax may be fetched using Nvidia NVML API. In NVML the function
@@ -398,24 +394,21 @@ class CoralAgent(GenericAgent):
     def collect_load_gpu(self):
         rates = self._nv.nvmlDeviceGetUtilizationRates(self._gpu)
         return {
-            'overview': float(rates.gpu),  # int between 0-100
-            'value': None,
-            'total': None,
+            'value': float(rates.gpu),  # int between 0-100
+            'total': 100.0,
         }
 
     def collect_load_cpu(self):
         percent = self._psutil.cpu_percent()
         return {
-            'overview': percent,
-            'value': None,
-            'total': None,
+            'value': percent,
+            'total': 100.0,
         }
 
     def collect_memory(self):
         # Given in bytes, must pass in MB
         memory = self._psutil.virtual_memory()
         return {
-            'overview': None,
             'value': memory.used / MB,
             'total': memory.total / MB,
         }
@@ -472,28 +465,25 @@ class CoralAgent(GenericAgent):
 
         # Given in bps, must pass in Mbps
         return {
-            'overview': None,
             'value': self._network_data['bytes_recv'] / MB,
             # Coral's uses motherboard (Gigabyte's Z370 AORUS Gaming 3 rev 1.0)
             # integrated network interface (Killer E2500 Gaming Network) which
             # is a gigabit Ethernet interface.
-            'total': 1000,
+            'total': 1000.0,
         }
 
     def collect_network_tx(self):
         # Given in bps, must pass in Mbps
         return {
-            'overview': None,
             'value': self._network_data['bytes_sent'] / MB,
             # Full-duplex, right?
-            'total': 1000,
+            'total': 1000.0,
         }
 
     def collect_disk_os(self):
         # Given in bytes, must pass in GB
         usage = self._psutil.disk_usage(PATH_OS)
         return {
-            'overview': None,
             'value': usage.used / GB,
             'total': usage.total / GB,
         }
@@ -502,7 +492,6 @@ class CoralAgent(GenericAgent):
         # Given in bytes, must pass in GB
         usage = self._psutil.disk_usage(PATH_ARCHIVE)
         return {
-            'overview': None,
             'value': usage.used / GB,
             'total': usage.total / GB,
         }

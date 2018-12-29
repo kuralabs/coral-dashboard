@@ -85,19 +85,31 @@ class ScalableBarGraph(BarGraph):
 class Graph(WidgetWrap):
     MAX_ENTRIES = 200
 
-    def __init__(self, identifier, title, unit, symbol='%', maxvalue=100.0):
+    def __init__(self, identifier, left_tpl, right_tpl):
 
         self._identifier = identifier
-        self._title = title
-        self._unit = unit
-        self._symbol = symbol
-        self._maxvalue = maxvalue
+        self._left_tpl = left_tpl
+        self._right_tpl = right_tpl
 
         self._data = [(0, 0)] * self.MAX_ENTRIES
         self._data_count = 0
 
-        self.title = Text('{} ({})'.format(title, unit), align='left')
-        self.label = Text('0.0{} [?/?]'.format(symbol), align='right')
+        self.left_label = Text(
+            self._left_tpl.format(
+                quotient=0.0,
+                value=0.0,
+                total=0.0,
+            ),
+            align='left',
+        )
+        self.right_label = Text(
+            self._right_tpl.format(
+                quotient=0.0,
+                value=0.0,
+                total=0.0,
+            ),
+            align='right',
+        )
 
         self.graph = ScalableBarGraph(
             [
@@ -116,38 +128,49 @@ class Graph(WidgetWrap):
         super().__init__(
             Pile([
                 ('pack', Columns([
-                    AttrMap(self.title, '{} title'.format(identifier)),
-                    AttrMap(self.label, '{} label'.format(identifier)),
+                    AttrMap(
+                        self.left_label,
+                        '{} left_label'.format(identifier)
+                    ),
+                    AttrMap(
+                        self.right_label,
+                        '{} right_label'.format(identifier)
+                    ),
                 ], dividechars=1)),
                 self.graph,
             ])
         )
 
-    def push(self, overview=None, value=None, total=None):
+    def push(self, value, total):
 
-        # Determine and change label
-        label = '{{:.1f}}{}'.format(self._symbol)
+        # Calculate proportion
+        quotient = min(max((value / total), 0.0), 1.0) * 100.0
 
-        if overview is None:
-            if value is None or total is None:
-                raise RuntimeError(
-                    'value and total must be passed when pushing data without '
-                    'the overview'
-                )
-            overview = (float(value) / float(total)) * 100.0
-            label = '{} [{}/{}]'.format(label, value, total)
-
-        self.label.set_text(label.format(overview))
+        # Update labels
+        self.left_label.set_text(
+            self._left_tpl.format(
+                quotient=quotient,
+                value=value,
+                total=total,
+            )
+        )
+        self.right_label.set_text(
+            self._right_tpl.format(
+                quotient=quotient,
+                value=value,
+                total=total,
+            )
+        )
 
         # Append new entry to data buffer
-        entry = (overview, 0) if self._data_count & 1 else (0, overview)
+        entry = (quotient, 0) if self._data_count & 1 else (0, quotient)
         self._data.append(entry)
 
         # Trim the buffer to MAX_ENTRIES and update data
         del self._data[0]
         self._data_count += 1
 
-        self.graph.set_data(self._data, self._maxvalue)
+        self.graph.set_data(self._data, 100.0)
 
 
 __all__ = [
