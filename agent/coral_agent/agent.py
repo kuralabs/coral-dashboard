@@ -139,6 +139,7 @@ class GenericAgent:
                     )
                 )
 
+            # Wait until next sample
             wait = self._frequency_s - (time() - timestamp)
             if wait > 0:
                 sleep(wait)
@@ -151,17 +152,21 @@ class GenericAgent:
             self._iteration += 1
 
     def collect(self):
-        metrics = {}
+        metrics = OrderedDict()
         issues = []
         for metric, collector in self.METRICS.items():
             try:
                 metrics[metric] = getattr(self, collector)()
             except NotImplementedError:
-                pass
+                log.info(
+                    '{} metric not implemented. Ignoring ...'.format(
+                        metric,
+                    )
+                )
             except Exception as e:
                 log.exception(
                     'Unable to collect metric {} at iteration {}'.format(
-                        metric, self._iteration
+                        metric, self._iteration,
                     )
                 )
                 issues.append('{}: {}'.format(metric, str(e)))

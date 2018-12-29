@@ -89,7 +89,12 @@ def test_push(dashboard):
                 'value': randint(512, 4096),
                 'total': 4096,
             },
-            'network': {
+            'network_rx': {
+                'overview': None,
+                'value': randint(0, 1000),
+                'total': 1000,
+            },
+            'network_tx': {
                 'overview': None,
                 'value': randint(0, 1000),
                 'total': 1000,

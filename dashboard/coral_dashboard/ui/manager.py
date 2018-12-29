@@ -61,7 +61,6 @@ class MessageShower(PopUpLauncher):
     def render(self, size, focus=False):
         canvas = super().render(size, focus)
         self._size = (canvas.rows(), canvas.cols())
-
         return canvas
 
     def show(self, title, text, width=None, height=None, type='WARNING'):

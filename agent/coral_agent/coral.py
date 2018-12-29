@@ -19,6 +19,7 @@
 Coral palette and UI description module.
 """
 
+from time import time
 from sys import platform
 from collections import OrderedDict
 from logging import getLogger as get_logger
@@ -28,6 +29,24 @@ from .palette import parse_palette
 
 
 log = get_logger(__name__)
+
+
+WINDOWS = platform == 'win32'
+
+
+if WINDOWS:
+    PATH_OS = 'C://'
+    PATH_ARCHIVE = 'D://'
+    NETWORK_INTERFACE = 'Ethernet'
+else:
+    PATH_OS = '/'
+    PATH_ARCHIVE = '/media/archive'
+    NETWORK_INTERFACE = 'eth0'
+
+
+KB = 1024
+MB = KB ** 2
+GB = KB ** 3
 
 
 CORAL_PALETTE = """
@@ -94,13 +113,21 @@ memory label              | white, bold          |
 
 # Network
 
-network background        |                      | black
-network bar1              |                      | light magenta
-network bar1 smooth       | light magenta        | black
-network bar2              |                      | dark magenta
-network bar2 smooth       | dark magenta         | black
-network title             | white, bold          |
-network label             | white, bold          |
+network_rx background     |                      | black
+network_rx bar1           |                      | light magenta
+network_rx bar1 smooth    | light magenta        | black
+network_rx bar2           |                      | dark magenta
+network_rx bar2 smooth    | dark magenta         | black
+network_rx title          | white, bold          |
+network_rx label          | white, bold          |
+
+network_tx background     |                      | black
+network_tx bar1           |                      | light magenta
+network_tx bar1 smooth    | light magenta        | black
+network_tx bar2           |                      | dark magenta
+network_tx bar2 smooth    | dark magenta         | black
+network_tx title          | white, bold          |
+network_tx label          | white, bold          |
 
 ################
 # Bar Styles   #
@@ -166,21 +193,6 @@ CORAL_WIDGETS = [
         'identifier': 'pump',
         'title': 'Pump',
         'unit': 'RPM',
-        # maxvalue is determined by the datasheet of the pump connected
-        # to the Coral. Currently a Swiftech Maelstrom D5 Series using a
-        # MCP655 / Laing D5 PWM motor.whose technical specifications available
-        # below [1] shows an RPM range of 800 - 4800.
-        #
-        #     [1] https://www.swiftech.com/maelstrom-d5.aspx#tab3
-        #
-        # Another source of information may be the article published by
-        # TechPowerUp available below [2] which shows a graph for the D5 at PWM
-        # duty cycle of 0% at ~800 RPM and at duty cycle 100% at ~4500, somehow
-        # confirming the range.
-        #
-        #     [2] https://www.techpowerup.com/reviews/Swiftech/MCP655/4.html
-        #
-        'maxvalue': 4800,
     },
     None,
     'Load',
@@ -207,24 +219,31 @@ CORAL_WIDGETS = [
     },
     None,
     'Network',
-    {
-        'widget': 'graph',
-        'identifier': 'network',
-        'title': 'Network',
-        'unit': 'Mbps',
-    },
+    [
+        {
+            'widget': 'graph',
+            'identifier': 'network_rx',
+            'title': 'Download',
+            'unit': 'Mbps',
+        }, {
+            'widget': 'graph',
+            'identifier': 'network_tx',
+            'title': 'Upload',
+            'unit': 'Mbps',
+        },
+    ],
     None,
     'Disk',
     [
         {
             'widget': 'bar',
             'identifier': 'disk_os',
-            'title': 'C:// "Windows"',
+            'title': '{} "Windows"'.format(PATH_OS),
             'unit': 'GB',
         }, {
             'widget': 'bar',
             'identifier': 'disk_apps',
-            'title': 'D:// "Archive"',
+            'title': '{} "Archive"'.format(PATH_ARCHIVE),
             'unit': 'GB',
         },
     ]
@@ -246,11 +265,6 @@ def _find_identifiers(alist):
     return result
 
 
-KB = 1024
-MB = KB ** 2
-GB = KB ** 3
-
-
 class CoralAgent(GenericAgent):
 
     USER_AGENT = 'coral/agent'
@@ -267,6 +281,7 @@ class CoralAgent(GenericAgent):
 
         import psutil
         self._psutil = psutil
+        self._update_network_cache()
 
         from py3nvml import py3nvml as nv
         self._nv = nv
@@ -276,7 +291,7 @@ class CoralAgent(GenericAgent):
         # [Windows] Open OpenHardwareMonitorLib.dll from package data
         self._ohm_handler = None
 
-        if platform == 'win32':
+        if WINDOWS:
             from clr import AddReference
             from pkg_resources import resource_filename
             AddReference(
@@ -293,22 +308,51 @@ class CoralAgent(GenericAgent):
             self._ohm_handler = handler
 
     def collect_temp_coolant(self):
+        """
+        What's the maximum acceptable temperature for the coolant?
+        The following link has some interesting opinions:
+
+            https://www.reddit.com/r/watercooling/comments/6487e4/max_acceptable_coolant_temperature/
+
+        Coral uses XSPC FLX flexible tubing, that seems to be stable up
+        to 60°C:
+
+            http://www.xs-pc.com/soft-tubing-fittings/flx-1610mm-2m-clear
+
+        Also, Coral's pump, Swiftech Maelstrom D5 also has a rating of
+        60°C maximum.
+
+        http://www.swiftech.com/maelstrom-d5.aspx#tab3
+        """
         raise NotImplementedError()
 
     def collect_temp_gpu(self):
-        temperature = self._nv.nvmlDeviceGetTemperature(
+        temperature = self._nv.nvmlDeviceGetTemperature(  # int celsius
             self._gpu,
             0,  # nvmlTemperatureSensors_t.NVML_TEMPERATURE_GPU
         )
+
         return {
-            'overview': float(temperature),  # int celsius
-            'value': None,
-            'total': None,
+            'overview': None,
+            'value': float(temperature),
+            # Coral has an Nvidia GeForce GTX 1080 Ti
+            # TJMax may be fetched using Nvidia NVML API. In NVML the function
+            # nvmlDeviceGetTemperatureThreshold allows to retrieve two
+            # temperature thresholds:
+            #
+            # - Slowdown: temperature where the GPU will start throttling.
+            # - Shutdown: temperature where the GPU will shutdown to protect
+            #   itself.
+            #
+            # On Coral's GPU, slowdown shows as 93°C, shutdown is set to 96°C.
+            # For monitoring, we decided to put 96 as the max value for the
+            # graph.
+            'total': 96.0,
         }
 
     def collect_temp_cpu(self):
         # FIXME:
-        if platform == 'win32':
+        if WINDOWS:
             raise NotImplementedError()
 
             # Something with self._ohm_handler...
@@ -321,15 +365,32 @@ class CoralAgent(GenericAgent):
         raise NotImplementedError()
 
     def collect_pump(self):
+        """
+        Total is determined by the datasheet of the pump connected to the
+        Coral. Currently a Swiftech Maelstrom D5 Series using a MCP655 / Laing
+        D5 PWM motor.whose technical specifications available below [1] shows
+        an RPM range of 800 - 4800.
+
+            [1] https://www.swiftech.com/maelstrom-d5.aspx#tab3
+
+        Another source of information may be the article published by
+        TechPowerUp available below [2] which shows a graph for the D5 at PWM
+        duty cycle of 0% at ~800 RPM and at duty cycle 100% at ~4500, somehow
+        confirming the range.
+
+            [2] https://www.techpowerup.com/reviews/Swiftech/MCP655/4.html
+
+        """
+
         # FIXME:
-        if platform == 'win32':
+        if WINDOWS:
             raise NotImplementedError()
 
             # Something with self._ohm_handler...
             # return {
             #     'overview': None,
             #     'value': None,
-            #     'total': None,
+            #     'total': 4800,
             # }
 
         raise NotImplementedError()
@@ -355,29 +416,95 @@ class CoralAgent(GenericAgent):
         memory = self._psutil.virtual_memory()
         return {
             'overview': None,
-            'value': memory['used'] / MB,
-            'total': memory['total'] / MB,
+            'value': memory.used / MB,
+            'total': memory.total / MB,
         }
 
-    def collect_network(self):
-        raise NotImplementedError()
+    def _update_network_cache(self):
+        counters = self._psutil.net_io_counters(pernic=True)[NETWORK_INTERFACE]
+
+        # Fetch current statistics
+        ctime = time()
+        cstats = {
+            key: getattr(counters, key)
+            for key in ('bytes_recv', 'bytes_sent')
+        }
+
+        self._network_cache = {
+            'time': ctime,
+            'stats': cstats,
+        }
+
+    def _update_network_data(self):
+        """
+        psutil's net_io_counters() gives us bytes sent and received at the
+        interface since boot, thankfully handling overflow. We want to
+        transform this value to an average transmission rate in bits per
+        second in the latest sampling frequency window.
+        """
+
+        # Fetch old statistics
+        otime = self._network_cache['time']
+        ostats = self._network_cache['stats']
+
+        # Fetch current statistics
+        self._update_network_cache()
+        ctime = self._network_cache['time']
+        cstats = self._network_cache['stats']
+
+        # Calculate deltas
+        dtime = ctime - otime
+        dstats = {
+            # First, calculate the difference of bytes transfered between
+            # before and now. Then, divide the difference by the elapsed time,
+            # which will give you the average bytes transfered in a second.
+            # Convert that to bits (multiply by 8) and we are done.
+            key: int(((cstats[key] - ostats[key]) / dtime) * 8)
+            for key in ostats.keys()
+        }
+
+        # Update last network deltas
+        self._network_data = dstats
+
+    def collect_network_rx(self):
+        # Update network data just once, use it for RX and TX
+        self._update_network_data()
+
+        # Given in bps, must pass in Mbps
+        return {
+            'overview': None,
+            'value': self._network_data['bytes_recv'] / MB,
+            # Coral's uses motherboard (Gigabyte's Z370 AORUS Gaming 3 rev 1.0)
+            # integrated network interface (Killer E2500 Gaming Network) which
+            # is a gigabit Ethernet interface.
+            'total': 1000,
+        }
+
+    def collect_network_tx(self):
+        # Given in bps, must pass in Mbps
+        return {
+            'overview': None,
+            'value': self._network_data['bytes_sent'] / MB,
+            # Full-duplex, right?
+            'total': 1000,
+        }
 
     def collect_disk_os(self):
         # Given in bytes, must pass in GB
-        usage = self._psutil.disk_usage('C:\\')
+        usage = self._psutil.disk_usage(PATH_OS)
         return {
             'overview': None,
-            'value': usage['used'] / GB,
-            'total': usage['total'] / GB,
+            'value': usage.used / GB,
+            'total': usage.total / GB,
         }
 
     def collect_disk_apps(self):
         # Given in bytes, must pass in GB
-        usage = self._psutil.disk_usage('D:\\')
+        usage = self._psutil.disk_usage(PATH_ARCHIVE)
         return {
             'overview': None,
-            'value': usage['used'] / GB,
-            'total': usage['total'] / GB,
+            'value': usage.used / GB,
+            'total': usage.total / GB,
         }
 
 
