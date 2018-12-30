@@ -309,8 +309,7 @@ class Dashboard:
             raise web.HTTPNotFound(text='No logs configured')
         return web.FileResponse(self.logs)
 
-    # FIXME: Let's disable schema validation for now
-    # @schema('config')
+    @schema('config')
     async def api_config(self, request, validated):
         """
         Endpoint to configure UI.
@@ -335,8 +334,7 @@ class Dashboard:
             'pushed': pushed,
         }
 
-    # FIXME: Let's disable schema validation for now
-    # @schema('message')
+    @schema('message')
     async def api_message(self, request, validated):
         """
         Endpoint to a message in UI.

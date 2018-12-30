@@ -26,6 +26,30 @@ from cerberus import Validator
 
 log = get_logger(__name__)
 
+# FIXME: Need to add children validation for palette and widgets
+SCHEMA_CONFIG = {
+    'palette': {
+        'type': 'list',
+        'required': True,
+        'nullable': False,
+        'empty': True,
+    },
+    'widgets': {
+        'type': 'list',
+        'required': True,
+        'nullable': False,
+        'empty': False,
+    },
+    'title': {
+        # None means it will set the default title, empty means it will render
+        # no title
+        'type': 'string',
+        'empty': True,
+        'required': False,
+        'nullable': True,
+        'default': None,
+    },
+}
 
 SCHEMA_PUSH = {
     'title': {
@@ -67,9 +91,44 @@ SCHEMA_PUSH = {
     },
 }
 
+SCHEMA_MESSAGE = {
+    'title': {
+        'type': 'string',
+        'empty': True,
+        'required': True,
+        'nullable': False,
+    },
+    'message': {
+        'type': 'string',
+        # Empty string is used to hide a message pop-up if present
+        'empty': True,
+        'required': True,
+        'nullable': False,
+    },
+    'width': {
+        'type': 'float',
+        'required': False,
+        'min': 0.1,
+        'max': 1.0,
+    },
+    'height': {
+        'type': 'float',
+        'required': False,
+        'min': 0.1,
+        'max': 1.0,
+    },
+    'type': {
+        'type': 'string',
+        'required': False,
+        'nullable': False,
+        'default': 'WARNING',
+    },
+}
 
 SCHEMAS = {
+    'config': SCHEMA_CONFIG,
     'push': SCHEMA_PUSH,
+    'message': SCHEMA_MESSAGE,
 }
 
 
