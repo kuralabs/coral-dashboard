@@ -22,6 +22,7 @@ Metrics collector agent.
 from time import time, sleep
 from datetime import datetime
 from collections import OrderedDict
+from abc import ABCMeta, abstractmethod
 from logging import getLogger as get_logger
 
 from requests import post
@@ -31,7 +32,34 @@ from pprintpp import pformat
 log = get_logger(__name__)
 
 
-class GenericAgent:
+class Agent(metaclass=ABCMeta):
+    # FIXME: Document.
+    @abstractmethod
+    def stop(self):
+        pass
+
+    @abstractmethod
+    def start(self):
+        pass
+
+    @abstractmethod
+    def collect(self):
+        pass
+
+    @abstractmethod
+    def config(self, timestamp, palette, widgets):
+        pass
+
+    @abstractmethod
+    def publish(self, timestamp, metrics):
+        pass
+
+    @abstractmethod
+    def notify(self, timestamp, issues=None):
+        pass
+
+
+class GenericAgent(Agent):
     """
     :param str dashboard: IP or hostname to dashboard server.
     :param float frequency_s: Sampling frequency in seconds.

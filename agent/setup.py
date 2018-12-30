@@ -188,9 +188,13 @@ setup(
     ],
     python_requires='>=3.5.0',
 
+    # Entry points
     entry_points={
         'console_scripts': [
             'coral_agent = coral_agent.__main__:main',
-        ]
+        ],
+        'coral_agent_builds_1_0': [
+            'coral = coral_agent.builds.coral:CoralAgent',
+        ],
     },
 )
