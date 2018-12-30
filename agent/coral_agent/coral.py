@@ -171,17 +171,17 @@ CORAL_WIDGETS = [
             'widget': 'graph',
             'identifier': 'temp_coolant',
             'left_tpl': 'Coolant',
-            'right_tpl': '{value:.0f}°C ({total:.0f} max)',
+            'right_tpl': '{value:.0f}°C/{total:.0f}Max',
         }, {
             'widget': 'graph',
             'identifier': 'temp_gpu',
             'left_tpl': 'GPU',
-            'right_tpl': '{value:.0f}°C ({total:.0f} TJMax)',
+            'right_tpl': '{value:.0f}°C/{total:.0f}TJM',
         }, {
             'widget': 'graph',
             'identifier': 'temp_cpu',
             'left_tpl': 'CPU',
-            'right_tpl': '{value:.0f}°C ({total:.0f} TJMax)',
+            'right_tpl': '{value:.0f}°C/{total:.0f}TJM',
         },
     ],
     None,
@@ -235,12 +235,12 @@ CORAL_WIDGETS = [
         {
             'widget': 'bar',
             'identifier': 'disk_os',
-            'left_tpl': '{} "OS"'.format(PATH_OS),
+            'left_tpl': '"OS"',
             'right_tpl': '{quotient:.1f}% [{value:.0f}/{total:.0f}]GB',
         }, {
             'widget': 'bar',
             'identifier': 'disk_apps',
-            'left_tpl': '{} "Archive"'.format(PATH_ARCHIVE),
+            'left_tpl': '"Archive"',
             'right_tpl': '{quotient:.1f}% [{value:.0f}/{total:.0f}]GB',
         },
     ]
